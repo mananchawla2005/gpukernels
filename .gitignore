@@ -1,0 +1,20 @@
+# CUDA/C++ compiled files
+*.exe
+*.exp
+*.lib
+
+# CUDA intermediate files
+*.o
+*.obj
+*.cubin
+*.fatbin
+
+# Visual Studio files
+.vs/
+*.pdb
+*.ilk
+
+# Build directories
+Debug/
+Release/
+x64/
