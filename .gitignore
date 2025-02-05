@@ -18,3 +18,10 @@
 Debug/
 Release/
 x64/
+
+# Other 
+build/
+myenv/
+*.egg-info
+
+.vscode/
