@@ -24,8 +24,7 @@ extern "C" void vecAdd(float* A_h, float* B_h, float* C_h, int n){
     cudaMemcpy(A_d, A_h, size, cudaMemcpyHostToDevice);
     cudaMemcpy(B_d, B_h, size, cudaMemcpyHostToDevice);
     
-    int blocksPerGrid = (n +255 / 256);
-    printf("%d", n);
+    int blocksPerGrid = (n +255) / 256;
     vecAddKernel<<<blocksPerGrid, 256>>>(A_d, B_d, C_d, n);
     cudaMemcpy(C_h, C_d, size, cudaMemcpyDeviceToHost);
     cudaFree(A_d);

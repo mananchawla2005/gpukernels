@@ -21,7 +21,7 @@ x64/
 
 # Other 
 build/
-myenv/
+venv/
 *.egg-info
 
 .vscode/
