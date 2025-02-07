@@ -29,3 +29,13 @@ def simple_blur(input: torch.Tensor, output: torch.Tensor, stride: int) -> None:
         stride (int): Stride value for blur operation
     """
     pass
+
+def gaussian_blur(input: torch.Tensor, output: torch.Tensor, stride: int) -> None:
+    """Converts RGB image to Gaussian Blurred Image.
+
+    Args:
+        input (torch.Tensor): Input tensor must be unsigned char, 3D (height x width x channels) 
+        output (torch.Tensor): Output tensor must be unsigned char
+        stride (int): Stride value for blur operation
+    """
+    pass
