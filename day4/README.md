@@ -1,7 +1,9 @@
-# Day 3:
-# TASK1: RGB IMAGE TO BLURRED IMAGE CONVERSION USING AVG POOL
-
+# Day 4:
+# TASK1: RGB IMAGE TO BLURRED IMAGE USING AVG POOL
 A CUDA kernel to convert an RGB image to blurred image by taking average of surrounding pixels.
+
+# TASK2: RGB IMAGE TO GAUSSIAN BLURRED IMAGE
+A CUDA kernel implementing Gaussian blur filter, which applies weighted averaging based on distance from center pixel.
 
 ## Prerequisites
 - NVIDIA GPU with CUDA support
@@ -26,20 +28,33 @@ pip install .
 ```
 
 ## Testing and Usage Example
-Run the test script to verify the installation:
+Run the test scripts to verify the installation:
 
+### Simple Blur
 ```python
-python test.py
+python simple_blur/test.py
 ```
 
-The test script will convert the image of the dog to blurred image:
+### Gaussian Blur
+```python
+python gaussian_blur/test.py
+```
 
-The test script will:
+The test scripts will:
 1. Load an RGB image (`../day3/dog.jpeg`)
-2. Convert it to blurred using the CUDA kernel via PyTorch bindings
-3. Save the resulting image as `./dog_blurred.jpeg`
+2. Convert it to blurred using the respective CUDA kernels via PyTorch bindings
+3. Save the resulting images as:
+   - `./simple_blur/dog_blurred.jpeg`
+   - `./gaussian_blur/dog_gaussian_blurred.jpeg`
 
+### Example Results
+Original Image:
 ![alt text](../day3/dog.jpeg)
+
+Simple Blur:
 ![alt text](simple_blur/dog_blurred.jpeg)
+
+Gaussian Blur:
+![alt text](gaussian_blur/dog_gaussian_blurred.jpeg)
 
 **Note**: Ensure you're in the activated virtual environment when running the code.
