@@ -41,7 +41,7 @@ python gaussian_blur/test.py
 ```
 
 The test scripts will:
-1. Load an RGB image (`../day3/dog.jpeg`)
+1. Load an RGB image (`../day03/dog.jpeg`)
 2. Convert it to blurred using the respective CUDA kernels via PyTorch bindings
 3. Save the resulting images as:
    - `./simple_blur/dog_blurred.jpeg`
@@ -49,7 +49,7 @@ The test scripts will:
 
 ### Example Results
 Original Image:
-![alt text](../day3/dog.jpeg)
+![alt text](../day03/dog.jpeg)
 
 Simple Blur:
 ![alt text](simple_blur/dog_blurred.jpeg)
