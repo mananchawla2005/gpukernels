@@ -39,3 +39,13 @@ def gaussian_blur(input: torch.Tensor, output: torch.Tensor, stride: int) -> Non
         stride (int): Stride value for blur operation
     """
     pass
+
+def matmul(M: torch.Tensor, N: torch.Tensor, P: torch.Tensor) -> None:
+    """Performs matrix multiplication P = M × N.
+
+    Args:
+        M (torch.Tensor): First input matrix (float32)
+        N (torch.Tensor): Second input matrix (float32)
+        P (torch.Tensor): Output matrix (float32)
+    """
+    pass

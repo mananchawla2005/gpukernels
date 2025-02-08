@@ -15,3 +15,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 2](./day2/) - Vector Addition with Python/PyTorch Bindings
 - [Day 3](./day3/) - RGB to Grayscale Conversion
 - [Day 4](./day4/) - RGB to Blurred Image Conversion
+- [Day 5](./day5/) - Simple Matrix Multiplication
