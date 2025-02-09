@@ -16,3 +16,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 3](./day03/) - RGB to Grayscale Conversion
 - [Day 4](./day04/) - RGB to Blurred Image Conversion
 - [Day 5](./day05/) - Simple Matrix Multiplication
+- [Day 6](./day06/) - Coalased Matrix Multiplication

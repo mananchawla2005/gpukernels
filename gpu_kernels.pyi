@@ -49,3 +49,13 @@ def matmul(M: torch.Tensor, N: torch.Tensor, P: torch.Tensor) -> None:
         P (torch.Tensor): Output matrix (float32)
     """
     pass
+
+def coalased_matmul(M: torch.Tensor, N: torch.Tensor, P: torch.Tensor) -> None:
+    """Performs coalased matrix multiplication P = M × N.
+
+    Args:
+        M (torch.Tensor): First input matrix (float32)
+        N (torch.Tensor): Second input matrix (float32)
+        P (torch.Tensor): Output matrix (float32)
+    """
+    pass
