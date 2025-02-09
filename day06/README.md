@@ -56,3 +56,7 @@ python test.py
 - Additionally we can benchmark the implementation using the [benchmark script](../experiments/day6_benchmark.py)
 
 **Note**: Ensure you're in the activated virtual environment when running the code.
+
+# External References
+
+[https://siboehm.com/articles/22/CUDA-MMM](https://siboehm.com/articles/22/CUDA-MMM)
