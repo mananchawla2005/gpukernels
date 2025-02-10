@@ -59,3 +59,12 @@ def coalased_matmul(M: torch.Tensor, N: torch.Tensor, P: torch.Tensor) -> None:
         P (torch.Tensor): Output matrix (float32)
     """
     pass
+
+def gelu(M: torch.Tensor, N: torch.Tensor) -> None:
+    """Performs gelu activation function on the given input vector
+
+    Args:
+        M (torch.Tensor): Input vector (float32)
+        N (torch.Tensor): Output vector (float32)
+    """
+    pass
