@@ -68,3 +68,22 @@ def gelu(M: torch.Tensor, N: torch.Tensor) -> None:
         N (torch.Tensor): Output vector (float32)
     """
     pass
+
+def batch_norm(input: torch.Tensor, output: torch.Tensor, gamma: torch.Tensor, beta: torch.Tensor, epsilon: float) -> None:
+    """Performs batch normalization on the input tensor.
+
+    The kernel normalizes each spatial location (H, W) across the batch dimension.
+    Expected input tensor shape is (N, H, W) where:
+      - N: Batch size.
+      - H: Height.
+      - W: Width.
+    Gamma and beta are parameters of shape (H, W).
+
+    Args:
+        input (torch.Tensor): Input tensor (float32) of shape (N, H, W)
+        output (torch.Tensor): Output tensor (float32) of shape (N, H, W)
+        gamma (torch.Tensor): Scale parameter (float32) of shape (H, W)
+        beta (torch.Tensor): Shift parameter (float32) of shape (H, W)
+        epsilon (float): Small constant for numerical stability.
+    """
+    pass
