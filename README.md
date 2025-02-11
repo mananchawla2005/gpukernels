@@ -18,3 +18,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 5](./day05/) - Simple Matrix Multiplication
 - [Day 6](./day06/) - Coalased Matrix Multiplication
 - [Day 7](./day07/) - GELU Activation function
+- [Day 8](./day08/) - NAIVE Batch Normalisation
