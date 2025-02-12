@@ -12,7 +12,7 @@ A CUDA kernel implementing the sigmoid activation function, a fundamental compon
 
 ## WHY SIGMOID?
 
-Sigmoid function squashes input values into the range [0,1], making it useful for:
+Sigmoid function squashes input values into the range [0,1], making it useful for:-
 - Output layers in binary classification
 - Gates in LSTM/GRU networks
 - Generating probability values
