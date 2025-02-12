@@ -87,3 +87,12 @@ def batch_norm(input: torch.Tensor, output: torch.Tensor, gamma: torch.Tensor, b
         epsilon (float): Small constant for numerical stability.
     """
     pass
+
+def gelu(M: torch.Tensor, N: torch.Tensor) -> None:
+    """Performs sigmoid activation function on the given input vector
+
+    Args:
+        M (torch.Tensor): Input vector (float32)
+        N (torch.Tensor): Output vector (float32)
+    """
+    pass
