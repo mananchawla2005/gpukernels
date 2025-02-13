@@ -96,3 +96,20 @@ def gelu(M: torch.Tensor, N: torch.Tensor) -> None:
         N (torch.Tensor): Output vector (float32)
     """
     pass
+def sigmoid(input: torch.Tensor, output: torch.Tensor) -> None:
+    """Performs sigmoid activation function on the given input tensor.
+
+    Args:
+        input (torch.Tensor): Input tensor (float32)
+        output (torch.Tensor): Output tensor (float32)
+    """
+    pass
+
+def tanh(input: torch.Tensor, output: torch.Tensor) -> None:
+    """Performs hyperbolic tangent activation function on the given input tensor.
+
+    Args:
+        input (torch.Tensor): Input tensor (float32)
+        output (torch.Tensor): Output tensor (float32)
+    """
+    pass
