@@ -113,3 +113,16 @@ def tanh(input: torch.Tensor, output: torch.Tensor) -> None:
         output (torch.Tensor): Output tensor (float32)
     """
     pass
+
+def tiled_matmul(M: torch.Tensor, N: torch.Tensor, P: torch.Tensor) -> None:
+    """Performs tiled matrix multiplication P = M × N.
+
+    This function divides the matrices into smaller sub-matrices (tiles)
+    to optimize memory access patterns and improve performance on NVIDIA GPUs.
+
+    Args:
+        M (torch.Tensor): First input matrix (float32)
+        N (torch.Tensor): Second input matrix (float32)
+        P (torch.Tensor): Output matrix (float32)
+    """
+    pass
