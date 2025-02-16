@@ -7,7 +7,7 @@ __global__ void layer_norm_kernel(float* input, float* output, int rows, int col
         extern __shared__ float SM[];
         float* shared_data = SM;
 
-        for (size_t i = 0; i < cols; i++)
+        for (size_t i = threadIdx.y; i < cols; i+=blockDim.y)
         {
             shared_data[i] = input[row*cols+i];
         }
@@ -15,25 +15,25 @@ __global__ void layer_norm_kernel(float* input, float* output, int rows, int col
         __syncthreads();
 
         float mean = 0.0f;
-        for (size_t i = 0; i < cols; i++)
+        for (size_t i = threadIdx.y; i < cols; i+=blockDim.y)
         {
             mean+=shared_data[i];
         }
         mean /= cols;
 
         float variance = 0.0f;
-        for (int i = 0; i < cols; i++)
+        for (int i = threadIdx.y; i < cols; i+=blockDim.y)
         {
             float diff = shared_data[i] - mean;
             variance += diff*diff;
         }
         variance/=cols;
 
-        float inv_std = rsqrtf(variance+1e-5f);
+        float stddev = sqrtf(variance + 1e-5);
 
-        for (size_t i = 0; i < cols; i++)
+        for (size_t i = threadIdx.y; i < cols; i+=blockDim.y)
         {
-            output[row*cols+i] = (shared_data[i]-mean) * inv_std; 
+            output[row*cols+i] = (shared_data[i]-mean) / stddev; 
         }
         
         

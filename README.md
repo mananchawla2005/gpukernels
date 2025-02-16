@@ -22,3 +22,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 9](./day09/) - Sigmoid Activation function
 - [Day 10](./day10/) - Tanh Activation function and Tiled Matrix Multiplication
 - [Day 11](./day11/) - Dynamic Tiled Matrix Multiplication
+- [Day 12](./day12/) - Layer Normalisation using Shared Memory
