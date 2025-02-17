@@ -20,9 +20,9 @@ max_diff = torch.max(torch.abs(expected - output_tensor))
 print(f"Maximum difference between PyTorch CUDA and custom CUDA results: {max_diff}")
 
 # Print sample of results
-print("\nSample comparison (first 5 elements):")
-print(f"PyTorch CUDA: {expected[0][:5]}")
-print(f"Custom CUDA:  {output_tensor[0][:5]}")
+# print("\nSample comparison (first 5 elements):")
+print(f"PyTorch CUDA: {expected}")
+print(f"Custom CUDA:  {output_tensor}")
 
 # Verify layer norm properties
 row_means = output_tensor.mean(dim=1)
