@@ -1,5 +1,6 @@
 #include <cuda_runtime.h>
 #include <math.h>
+#include <stdio.h>
 
 __global__ void softmax_kernel(float* input, float* output, int rows, int cols) {
     int row = blockIdx.x;
@@ -50,16 +51,39 @@ __global__ void softmax_kernel(float* input, float* output, int rows, int cols) 
 extern "C" void softmax(float* input_h, float* output_h, int rows, int cols) {
     float *input_d, *output_d;
     int size = rows * cols * sizeof(float);
+
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    float milliseconds = 0;
+
     cudaMalloc((void**)&input_d, size);
     cudaMalloc((void**)&output_d, size);
+    cudaEventRecord(start);
     cudaMemcpy(input_d, input_h, size, cudaMemcpyHostToDevice);
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&milliseconds, start, stop);
+    printf("Host to Device transfer time: %.3f ms\n", milliseconds);
     
     int blockSize = 256;
     int gridSize = rows;
     
+    cudaEventRecord(start);
     softmax_kernel<<<gridSize, blockSize>>>(input_d, output_d, rows, cols);
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&milliseconds, start, stop);
+    printf("Kernel execution time: %.3f ms\n", milliseconds);
     
+    cudaEventRecord(start);
     cudaMemcpy(output_h, output_d, size, cudaMemcpyDeviceToHost);
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&milliseconds, start, stop);
+    printf("Device to Host transfer time: %.3f ms\n", milliseconds);
     cudaFree(input_d);
     cudaFree(output_d);
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
 }
