@@ -25,3 +25,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 12](./day12/) - Layer Normalisation using Shared Memory
 - [Day 13](./day13/) - Matrix Transpose
 - [Day 14](./day14/) - Softmax using shared memory
+- [Day 15](./day15/) - GELU Forward and Backward Kernels 
