@@ -122,58 +122,50 @@ __global__ void quantize_nf4_block_kernel(const float *input, uint8_t* output, f
 
 }
 
-// typedef enum {
-//     TYPE_FLOAT16,
-// } DataType;
-
-// struct quant_state
-// {
-//     DataType type;
-//     float* absmax;
-//     float* code;
-//     float* offset = {0};
-//     int blocksize;
-// };
-    
-
-// struct nf4
-// {
-//     uint8_t* weight;
-//     quant_state quant_state;
-// };
-
 extern "C" nf4 quantize_nf4(const float *input_h, int n, int block_size_outer, int block_size_inner) {
-    int blockSize = block_size_outer;
-    int gridSize = ceil(n/float(blockSize));
-    float *input_d;
-    uint8_t* output_d, *output_h;
-    float* absmax_d, *absmax_h;
+  int blockSize = block_size_outer;
+  int gridSize = ceil(n/float(blockSize));
+  float *input_d;
+  uint8_t* output_d, *output_h;
+  float* absmax_d, *absmax_h;
 
-    cudaMallocHost((void**)&absmax_h, gridSize*sizeof(float));
-    cudaMallocHost((void**)&output_h, (n/2)*sizeof(uint8_t));
-    cudaMalloc((void**)&absmax_d, gridSize*sizeof(float));
-    cudaMalloc((void**)&input_d, n*sizeof(float));
-    cudaMalloc((void**)&output_d, (n/2)*sizeof(uint8_t));
-    cudaMemcpy(input_d, input_h, n*sizeof(float), cudaMemcpyHostToDevice);
-    quantize_nf4_block_kernel<<<gridSize, blockSize, blockSize * sizeof(float)>>>(input_d, output_d, absmax_d, n);
-    
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("Kernel launch error: %s\n", cudaGetErrorString(err));
-        return {};
-    }
-    
-    cudaMemcpy(output_h, output_d, (n/2)*sizeof(uint8_t), cudaMemcpyDeviceToHost);
-    cudaMemcpy(absmax_h, absmax_d, gridSize*sizeof(float), cudaMemcpyDeviceToHost);
-    nf4 quant_state;
-    quant_state.weight = output_h;
-    quant_state.quant_state.type = TYPE_FLOAT16;
-    quant_state.quant_state.absmax = absmax_h;
-    quant_state.quant_state.blocksize = blockSize;
-    quant_state.quant_state.code = nf4_code;
-    
-    cudaFree(input_d);
-    cudaFree(output_d);
-    cudaFree(absmax_d);
-    return quant_state;   
+  cudaMallocHost((void**)&absmax_h, gridSize*sizeof(float));
+  cudaMallocHost((void**)&output_h, (n/2)*sizeof(uint8_t));
+  cudaMalloc((void**)&absmax_d, gridSize*sizeof(float));
+  cudaMalloc((void**)&input_d, n*sizeof(float));
+  cudaMalloc((void**)&output_d, (n/2)*sizeof(uint8_t));
+  cudaMemcpy(input_d, input_h, n*sizeof(float), cudaMemcpyHostToDevice);
+  
+  cudaEvent_t start, stop;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+  cudaEventRecord(start);
+  
+  quantize_nf4_block_kernel<<<gridSize, blockSize, blockSize * sizeof(float)>>>(input_d, output_d, absmax_d, n);
+  
+  cudaEventRecord(stop);
+  cudaEventSynchronize(stop);
+  float milliseconds = 0;
+  cudaEventElapsedTime(&milliseconds, start, stop);
+  printf("Kernel execution time: %.3f ms\n", milliseconds);
+
+  cudaError_t err = cudaGetLastError();
+  if (err != cudaSuccess) {
+      printf("Kernel launch error: %s\n", cudaGetErrorString(err));
+      return {};
+  }
+  
+  cudaMemcpy(output_h, output_d, (n/2)*sizeof(uint8_t), cudaMemcpyDeviceToHost);
+  cudaMemcpy(absmax_h, absmax_d, gridSize*sizeof(float), cudaMemcpyDeviceToHost);
+  nf4 quant_state;
+  quant_state.weight = output_h;
+  quant_state.quant_state.type = TYPE_FLOAT16;
+  quant_state.quant_state.absmax = absmax_h;
+  quant_state.quant_state.blocksize = blockSize;
+  quant_state.quant_state.code = nf4_code;
+  
+  cudaFree(input_d);
+  cudaFree(output_d);
+  cudaFree(absmax_d);
+  return quant_state;   
 }

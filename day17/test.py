@@ -102,12 +102,19 @@ def compare_quantization():
     # Move weight to CUDA for bitsandbytes
     weight_cuda = weight.cuda()
     
+    start_event = torch.cuda.Event(enable_timing=True)
+    end_event = torch.cuda.Event(enable_timing=True)
     # Quantize using bitsandbytes
     print("\nBitsAndBytes NF4 Quantization:")
+    start_event.record()
     bnb_weight = quantize_weight_bnb(weight_cuda)
+    end_event.record()
+    torch.cuda.synchronize()
+    bnb_time = start_event.elapsed_time(end_event)
     print(f"BnB quantized shape: {bnb_weight.shape}")
     print(f"BnB stats: min={bnb_weight.min():.4f}, max={bnb_weight.max():.4f}")
-    
+    print(f"BnB quantization time: {bnb_time:.3f} ms")
+
     # Quantize using our implementation
     print("\nCustom NF4 Quantization:")
     custom_weight, absmax = quantize_weight_custom(weight, block_size=64)
