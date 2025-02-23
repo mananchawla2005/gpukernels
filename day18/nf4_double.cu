@@ -149,18 +149,6 @@ extern "C" nf4 quantize_nf4(const float *input_h, int n, int block_size_outer, i
 
     quantize_nf4_block_kernel<<<gridSize, blockSize, blockSize * sizeof(float)>>>(input_d, output_d, absmax_d, n);
 
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    float milliseconds = 0;
-    cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Kernel execution time: %.3f ms\n", milliseconds);
-
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("Kernel launch error: %s\n", cudaGetErrorString(err));
-        return {};
-    }
-
     cudaMemcpy(output_h, output_d, (n/2)*sizeof(uint8_t), cudaMemcpyDeviceToHost);
     // cudaMemcpy(absmax_intermediate_h, absmax_d, gridSize*sizeof(float), cudaMemcpyDeviceToHost);
     nf4 quant_state;
@@ -176,21 +164,34 @@ extern "C" nf4 quantize_nf4(const float *input_h, int n, int block_size_outer, i
     uint8_t *absmax_outer, *absmax_outer_h;
     float *absmax_inner, *absmax_inner_h;
     int absmax_size = gridSize/2;
-    cudaMallocHost((void**)&absmax_inner_h, absmax_size*sizeof(float));
-    cudaMalloc((void**)&absmax_inner, absmax_size*sizeof(float));
+    cudaMallocHost((void**)&absmax_outer_h, absmax_size*sizeof(uint8_t));
+    cudaMalloc((void**)&absmax_outer, absmax_size*sizeof(uint8_t));
     int gridSize_outer = ceil(n/float(block_size_outer));
     blockSize = block_size_inner;
     gridSize = ceil(gridSize_outer/float(blockSize));
-    cudaMallocHost((void**)&absmax_outer_h, gridSize*sizeof(uint8_t));
-    cudaMalloc((void**)&absmax_outer, gridSize*sizeof(uint8_t));
+    cudaMallocHost((void**)&absmax_inner_h, gridSize*sizeof(float));
+    cudaMalloc((void**)&absmax_inner, gridSize*sizeof(float));
 
 
     quantize_nf4_block_kernel<<<gridSize, blockSize, blockSize * sizeof(float)>>>(absmax_d, absmax_outer, absmax_inner, gridSize_outer);
-    cudaMemcpy(absmax_inner_h, absmax_inner, absmax_size*sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(absmax_outer_h, absmax_outer, gridSize*sizeof(uint8_t), cudaMemcpyDeviceToHost);
+    
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    float milliseconds = 0;
+    cudaEventElapsedTime(&milliseconds, start, stop);
+    printf("Kernel execution time: %.3f ms\n", milliseconds);
+
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("Kernel launch error: %s\n", cudaGetErrorString(err));
+        return {};
+    }
+    
+    cudaMemcpy(absmax_inner_h, absmax_inner, gridSize*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(absmax_outer_h, absmax_outer, absmax_size*sizeof(uint8_t), cudaMemcpyDeviceToHost);
 
     quant_state.quant_state.state2.absmax = absmax_inner_h;
-    quant_state.quant_state.absmax = absmax_outer;
+    quant_state.quant_state.absmax = absmax_outer_h;
     quant_state.quant_state.state2.code = nf4_code;
     quant_state.quant_state.state2.blocksize = blockSize;
 
