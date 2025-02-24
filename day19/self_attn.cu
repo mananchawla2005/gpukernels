@@ -3,7 +3,7 @@
 #include <stdio.h>
 #define TILE_WIDTH 16
 
-__global__ void softmax_kernel2(float* input, float* output, int rows, int cols) {
+__global__ void softmax_kernel(float* input, float* output, int rows, int cols) {
     int row = blockIdx.x;
     int tid = threadIdx.x;
     
@@ -48,13 +48,13 @@ __global__ void softmax_kernel2(float* input, float* output, int rows, int cols)
     }
 }
 
-__global__ void tiled_matmul_kernel2(float* M, float* N, float* P,
+__global__ void tiled_matmul_kernel(float* M, float* N, float* P,
                                     int M_rows, int M_cols, int N_cols, int d, bool normalise) {
     __shared__ float Mds[TILE_WIDTH][TILE_WIDTH];
     __shared__ float Nds[TILE_WIDTH][TILE_WIDTH];
 
-    int bx = blockIdx.x; int by = blockIdx.y;
-    int tx = threadIdx.x; int ty = threadIdx.y;
+    int bx = blockIdx.x, by = blockIdx.y;
+    int tx = threadIdx.x, ty = threadIdx.y;
 
     int row = by * TILE_WIDTH + ty;
     int col = bx * TILE_WIDTH + tx;
@@ -71,17 +71,17 @@ __global__ void tiled_matmul_kernel2(float* M, float* N, float* P,
         else
             Mds[ty][tx] = 0.0f;
         
+        // When normalise==true, we want to load N in transposed form (for Kᵀ)
         if (normalise) {
+            if (col < N_cols && n_row < M_cols)
+                Nds[ty][tx] = N[col * M_cols + n_row];
+            else
+                Nds[ty][tx] = 0.0f;
+        } else {
             if (n_row < M_cols && col < N_cols)
                 Nds[ty][tx] = N[n_row * N_cols + col];
             else
                 Nds[ty][tx] = 0.0f;
-        } else {
-            if(col < N_cols && n_row < M_cols)
-                Nds[ty][tx] = N[col * M_cols + n_row];
-            else
-                Nds[ty][tx] = 0.0f;
-
         }
         __syncthreads();
 
@@ -90,14 +90,12 @@ __global__ void tiled_matmul_kernel2(float* M, float* N, float* P,
         }
         __syncthreads();
     }
-    if (row < M_rows && col < N_cols)
-        if(normalise){
-
-            P[row * N_cols + col] = Pval/sqrtf(d);
-        }
-        else{
+    if (row < M_rows && col < N_cols) {
+        if (normalise)
+            P[row * N_cols + col] = Pval / sqrtf(d);
+        else
             P[row * N_cols + col] = Pval;
-        }
+    }
 }
 
 
@@ -116,16 +114,16 @@ extern "C" void self_attn(float* q_h, float* attn_out_h, int rows, int cols, int
     cudaMemcpy(v_d, q_h, size, cudaMemcpyHostToDevice);
     dim3 blockSize(16, 16);
     dim3 gridSize(ceil(cols/16.0), ceil(rows/16.0));
-    tiled_matmul_kernel2<<<gridSize, blockSize>>>(q_d, k_d, s_d, rows, cols, cols, d, true);
+    tiled_matmul_kernel<<<gridSize, blockSize>>>(q_d, k_d, s_d, rows, cols, rows, d, true);
     
     int blockSize2 = 256;
     int gridSize2 = rows;
     
-    softmax_kernel2<<<gridSize2, blockSize2>>>(s_d, soft_out_d, rows, rows);
+    softmax_kernel<<<gridSize2, blockSize2>>>(s_d, soft_out_d, rows, rows);
     dim3 blockSize3(16, 16);
-    dim3 gridSize3(ceil(rows/16.0), ceil(rows/16.0));
+    dim3 gridSize3(ceil(cols/16.0), ceil(rows/16.0));
 
-    tiled_matmul_kernel2<<<gridSize3, blockSize3>>>(soft_out_d, v_d, attn_out_d, rows, rows, cols, d, false);
+    tiled_matmul_kernel<<<gridSize3, blockSize3>>>(soft_out_d, v_d, attn_out_d, rows, rows, cols, d, false);
     cudaMemcpy(attn_out_h, attn_out_d, size, cudaMemcpyDeviceToHost);
     cudaFree(q_d);
     cudaFree(k_d);

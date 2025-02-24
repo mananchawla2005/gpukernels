@@ -29,3 +29,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 16](./day16/) - Querying Gpu Properties 
 - [Day 17](./day17/) - Custom NF4 Quantization Implementation
 - [Day 18](./day18/) - Custom Double NF4 Quantization (QLORA STYLE) Implementation
+- [Day 19](./day19/) - Transformers Self Attention Implementation
