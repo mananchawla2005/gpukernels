@@ -5,7 +5,7 @@ DEVICE = torch.device("cuda:0")
 
 
 def seeded_dropout(x: torch.Tensor, p, seed):
-    output = torch.empty_like(x);
+    output = torch.empty_like(x)
     assert x.is_contiguous()
     n_elements = x.numel()
     grid = lambda meta: (triton.cdiv(n_elements, meta['bs']),)

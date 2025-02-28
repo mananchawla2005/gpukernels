@@ -32,3 +32,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 19](./day19/) - Transformers Self Attention Implementation
 - [Day 20](./day20/) - Triton Basics
 - [Day 21](./day21/) - Dropout in Triton
+- [Day 21](./day21/) - Batch Norm in Triton
