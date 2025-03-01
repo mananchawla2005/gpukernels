@@ -28,8 +28,9 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 15](./day15/) - GELU Forward and Backward Kernels 
 - [Day 16](./day16/) - Querying Gpu Properties 
 - [Day 17](./day17/) - Custom NF4 Quantization Implementation
-- [Day 18](./day18/) - Custom Double NF4 Quantization (QLORA STYLE) Implementation
+- [Day 18](./day18/) - [Not working] Custom Double NF4 Quantization (QLORA STYLE) Implementation
 - [Day 19](./day19/) - Transformers Self Attention Implementation
 - [Day 20](./day20/) - Triton Basics
 - [Day 21](./day21/) - Dropout in Triton
-- [Day 21](./day21/) - Batch Norm in Triton
+- [Day 22](./day22/) - Batch Norm in Triton
+- [Day 23](./day23/) - [Not working] Chunked Cross Entropy Loss in Triton
