@@ -34,3 +34,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 21](./day21/) - Dropout in Triton
 - [Day 22](./day22/) - Batch Norm in Triton
 - [Day 23](./day23/) - [Not working] Chunked Cross Entropy Loss in Triton
+- [Day 24](./day24/) - Device Propertiest using pytorch ( WILL USE LATER )
