@@ -36,3 +36,5 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 23](./day23/) - [Not working] Chunked Cross Entropy Loss in Triton
 - [Day 24](./day24/) - Device Propertiest using pytorch ( WILL USE LATER )
 - [Day 25](./day25/) - Sigmoid in Triton
+- [Day 26](./day26/) - Blur Kernel in Triton
+- [Day 27](./day27/) - Gelu Kernel in Triton
