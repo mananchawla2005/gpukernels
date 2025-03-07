@@ -39,3 +39,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 26](./day26/) - Blur Kernel in Triton
 - [Day 27](./day27/) - Gelu Kernel in Triton
 - [Day 28](./day28/) - Tanh Kernel in Triton
+- [Day 29](./day29/) - Gelu Kernel in Triton
