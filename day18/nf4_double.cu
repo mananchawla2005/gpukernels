@@ -111,7 +111,7 @@ __global__ void quantize_nf4_block_kernel(const float *input, uint8_t* output, f
         __syncthreads();
 
         if(tid%2==0 && idx<n) {
-            uint8_t quantised1 = decision_nf4(input[idx] / shared_max[0]);
+            uint8_t quantised1 = decision_nf4(input[idx] / shared_max[0]); // shared max is faster due to sram than absmax from hbm
             uint8_t quantised2 = 0;
             
             if (idx + 1 < n) {
@@ -125,6 +125,42 @@ __global__ void quantize_nf4_block_kernel(const float *input, uint8_t* output, f
 
         
     }
+
+}
+
+
+__global__ void quantize_absmax_to_8bit(const float *input, uint8_t* output, float* absmax, int n){
+  int blockSize = blockDim.x;
+  int idx = blockIdx.x*blockSize+threadIdx.x;
+  int tid = threadIdx.x;
+
+  extern __shared__ float shared_max[];
+
+  if(idx<n){
+      shared_max[tid] = fabsf(input[idx]);
+      __syncthreads();
+      for (int stride = blockSize / 2; stride > 0; stride /= 2) {
+          if (tid < stride) {
+              shared_max[tid] = fmaxf(shared_max[tid], shared_max[tid + stride]);
+          }
+          __syncthreads();
+      }
+
+      if(tid==0) {
+          absmax[blockIdx.x] = shared_max[0];
+      }
+      __syncthreads();
+
+      if (shared_max[0] > 0) { 
+        output[idx] = (uint8_t)roundf((input[idx] / shared_max[0]) * 255.0f);
+      }
+      else {
+        output[idx] = 0;
+      }
+
+
+      
+  }
 
 }
 
@@ -163,7 +199,7 @@ extern "C" nf4 quantize_nf4(const float *input_h, int n, int block_size_outer, i
 
     uint8_t *absmax_outer, *absmax_outer_h;
     float *absmax_inner, *absmax_inner_h;
-    int absmax_size = gridSize/2;
+    int absmax_size = gridSize;
     cudaMallocHost((void**)&absmax_outer_h, absmax_size*sizeof(uint8_t));
     cudaMalloc((void**)&absmax_outer, absmax_size*sizeof(uint8_t));
     int gridSize_outer = ceil(n/float(block_size_outer));
@@ -173,7 +209,7 @@ extern "C" nf4 quantize_nf4(const float *input_h, int n, int block_size_outer, i
     cudaMalloc((void**)&absmax_inner, gridSize*sizeof(float));
 
 
-    quantize_nf4_block_kernel<<<gridSize, blockSize, blockSize * sizeof(float)>>>(absmax_d, absmax_outer, absmax_inner, gridSize_outer);
+    quantize_absmax_to_8bit<<<gridSize, blockSize, blockSize * sizeof(float)>>>(absmax_d, absmax_outer, absmax_inner, gridSize_outer);
     
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);

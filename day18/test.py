@@ -1,11 +1,7 @@
 import torch
 import torch.nn as nn
 import gpu_kernels
-import bitsandbytes as bnb
-import numpy as np
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-
-
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 def quantize_weight_custom_double(weight, block_size_outer=128, block_size_inner=32):
     """Quantize using our custom NF4 double quantization implementation"""
@@ -20,9 +16,9 @@ def quantize_weight_custom_double(weight, block_size_outer=128, block_size_inner
 def dequantize_nf4_custom_double(weight_quant, absmax_outer, absmax_inner, original_shape, block_size_outer, block_size_inner):
     """Dequantize our custom double-quantized NF4 back to fp32"""
     nf4_codes = torch.tensor([-1.0, -0.6961928009986877, -0.5250730514526367, -0.39491748809814453,
-                             -0.28444138169288635, -0.18477343022823334, -0.09105003625154495, 0.0,
-                             0.07958029955625534, 0.16093020141124725, 0.24611230194568634, 0.33791524171829224,
-                             0.44070982933044434, 0.5626170039176941, 0.7229568362236023, 1.0])
+                              -0.28444138169288635, -0.18477343022823334, -0.09105003625154495, 0.0,
+                              0.07958029955625534, 0.16093020141124725, 0.24611230194568634, 0.33791524171829224,
+                              0.44070982933044434, 0.5626170039176941, 0.7229568362236023, 1.0])
     
     total_elements = original_shape[0] * original_shape[1]
     values = torch.zeros(total_elements, dtype=torch.float32)
@@ -45,13 +41,13 @@ def dequantize_nf4_custom_double(weight_quant, absmax_outer, absmax_inner, origi
         inner_block_idx = i // block_size_inner
         values[start_idx:end_idx] *= absmax_inner[inner_block_idx]
     
-    # Then apply outer block scaling
+    # Then apply outer block scaling with conversion from 8-bit to fp32
     for i in range(num_inner_blocks):
         start_block = i * block_size_inner
         end_block = min(start_block + block_size_inner, num_outer_blocks)
         start_idx = start_block * block_size_outer
         end_idx = min(end_block * block_size_outer, total_elements)
-        values[start_idx:end_idx] *= absmax_outer[i]
+        values[start_idx:end_idx] *= (absmax_outer[i] / 255.0)
     
     return values.reshape(original_shape)
 
@@ -61,22 +57,6 @@ def compare_double_quantization():
     
     print("Loading tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(model_id)
-    
-    # Configure BnB double quantization
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_use_double_quant=True,
-        bnb_4bit_compute_dtype=torch.float16
-    )
-    
-    print("Loading model with BnB double quantization...")
-    bnb_model = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        quantization_config=bnb_config,
-        device_map="auto",
-        trust_remote_code=True
-    )
     
     print("Loading model for custom quantization...")
     model = AutoModelForCausalLM.from_pretrained(
@@ -93,9 +73,6 @@ def compare_double_quantization():
     print(f"\nTesting on weight matrix shape: {original_shape}")
     print(f"Original weight stats: min={sample_weight.min():.4f}, max={sample_weight.max():.4f}")
     
-    # Get BnB quantized version of the same layer
-    bnb_layer = bnb_model.model.layers[0].self_attn.q_proj
-    bnb_weight = bnb_layer.weight
     
     # Custom double quantization
     print("\nCustom Double-Quantized NF4:")
@@ -133,22 +110,6 @@ def compare_double_quantization():
     print("\nQuantization Analysis:")
     mse_custom = torch.nn.functional.mse_loss(sample_weight.cpu(), dequant_custom)
     print(f"MSE loss with Custom double-quant: {mse_custom:.6f}")
-    
-    # Try inference with both models
-    print("\nTesting inference:")
-    input_text = "What is machine learning?"
-    inputs = tokenizer(input_text, return_tensors="pt")
-    
-    print("\nGenerating with BnB quantized model:")
-    bnb_model.eval()
-    with torch.no_grad():
-        outputs_bnb = bnb_model.generate(
-            inputs["input_ids"].cuda(),
-            max_new_tokens=50,
-            do_sample=True,
-            temperature=0.7
-        )
-    print("BnB Output:", tokenizer.decode(outputs_bnb[0], skip_special_tokens=True))
     
     # Memory analysis
     original_mem = sample_weight.element_size() * sample_weight.nelement()
