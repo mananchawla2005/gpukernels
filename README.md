@@ -41,3 +41,5 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 28](./day28/) - Tanh Kernel in Triton
 - [Day 29](./day29/) - Transpose Kernel in Triton
 - [Day 30](./day30/) - Layer Norm Kernel in Triton
+- [Day 31](./day31/) - Tiled Matmul Corner Turning Kernel in Triton
+- [Day 32](./day32/) - Partial Dequantise Kernel in Triton
