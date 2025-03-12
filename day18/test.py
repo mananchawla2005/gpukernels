@@ -47,7 +47,7 @@ def dequantize_nf4_custom_double(weight_quant, absmax_outer, absmax_inner, origi
         end_block = min(start_block + block_size_inner, num_outer_blocks)
         start_idx = start_block * block_size_outer
         end_idx = min(end_block * block_size_outer, total_elements)
-        values[start_idx:end_idx] *= (absmax_outer[i] / 255.0)
+        values[start_idx:end_idx] *= (absmax_outer[i] / 255.0) # CODE8[absmax_outer[i]] for given codebook
     
     return values.reshape(original_shape)
 
