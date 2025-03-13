@@ -25,17 +25,16 @@ def _your_dequantize_nf4_kernel(
     bytes = tl.load(weight_quant_ptr+byte_offsets, mask=mask)
     is_upper = (offsets % 2) == 0
     nf4_indices = tl.where(is_upper, 
-                     (bytes >> 4) & 0xF,  # Upper 4 bits (when even)
-                     bytes & 0xF)         # Lower 4 bits (when odd)
-    values = tl.load(codebook_outer_ptr+nf4_indices, mask=mask)
+                     (bytes >> 4) & 0x0F,  # Upper 4 bits (when even)
+                     bytes & 0x0F)         # Lower 4 bits (when odd)
+    K = tl.load(codebook_outer_ptr+nf4_indices, mask=mask)
     outer_block_idx = offsets // block_size_outer
+    T = tl.load(absmax_outer_ptr+outer_block_idx, mask=mask)
+    F = tl.load(codebook_inner_ptr+T, mask=mask)
     inner_block_idx = outer_block_idx // block_size_inner
-
     inner_scale = tl.load(absmax_inner_ptr+inner_block_idx, mask=mask)
-    values = values * inner_scale
-    outer_scale = tl.load(absmax_outer_ptr+outer_block_idx, mask=mask)
-    values = values * tl.load(codebook_inner_ptr+outer_scale, mask=mask)
-    tl.store(output_ptr+offsets, values, mask=mask)  
+    values = K * (F * inner_scale)
+    tl.store(output_ptr+offsets, values, mask=mask)
 
 
 def _your_dequantize_nf4(weight: torch.Tensor, quant_state, out_features, in_features):
