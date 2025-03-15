@@ -44,3 +44,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 31](./day31/) - Tiled Matmul Corner Turning Kernel in Triton
 - [Day 32](./day32/) - Partial Dequantise Kernel in Triton
 - [Day 33](./day33/) - Animated Color Patterns in Cuda
+- [Day 34](./day34/) - SiLU in Triton
