@@ -9,69 +9,61 @@ def rmsnorm_kernel(
     output_ptr,
     hidden_dim,
     eps,
-    stride_batch,
-    stride_seq,
+    stride_batch_seq, 
     stride_hidden,
-    weight_stride,
-    num_batches,
-    seq_len,
+    num_elements, 
     BLOCK_SIZE: tl.constexpr,
 ):
     pid = tl.program_id(axis=0)
     
-    batch_idx = pid // seq_len
-    seq_idx = pid % seq_len
-    
-    if batch_idx >= num_batches:
+    if pid >= num_elements:
         return
-    
-    batch_seq_offset = batch_idx * stride_batch + seq_idx * stride_seq
-    x_ptr = x_ptr + batch_seq_offset
-    output_ptr = output_ptr + batch_seq_offset
+    offset = pid * stride_batch_seq
     
     sum_squares = 0.0
     
     for i in range(0, hidden_dim, BLOCK_SIZE):
-        block_offset = i
+        block_idx = tl.arange(0, BLOCK_SIZE)
+        mask = (i + block_idx) < hidden_dim
         
-        mask = block_offset + tl.arange(0, BLOCK_SIZE) < hidden_dim
-        x_block = tl.load(x_ptr + block_offset * stride_hidden, mask=mask, other=0.0)
-        
-        sum_squares += tl.sum(x_block * x_block, axis=0)
-        
-    rms = tl.sqrt(sum_squares / hidden_dim + eps)
-    inv_rms = 1.0 / rms
+        x = tl.load(x_ptr + offset + (i + block_idx) * stride_hidden, mask=mask, other=0.0)
+        sum_squares += tl.sum(x * x, axis=0)
+    
+    # Calculate RMS normalization factor: 1/sqrt((1/N)*sum(x^2) + eps)
+    inv_rms = 1.0 / tl.sqrt(sum_squares / hidden_dim + eps)
     
     for i in range(0, hidden_dim, BLOCK_SIZE):
-        block_offset = i
+        block_idx = tl.arange(0, BLOCK_SIZE)
+        mask = (i + block_idx) < hidden_dim
         
-        mask = block_offset + tl.arange(0, BLOCK_SIZE) < hidden_dim
-        x_block = tl.load(x_ptr + block_offset * stride_hidden, mask=mask, other=0.0)
-        weight_block = tl.load(weight_ptr + block_offset * weight_stride, mask=mask, other=0.0)
+        x = tl.load(x_ptr + offset + (i + block_idx) * stride_hidden, mask=mask, other=0.0)
+        gamma = tl.load(weight_ptr + (i + block_idx), mask=mask, other=0.0)
         
-        result_block = x_block * inv_rms * weight_block
-        tl.store(output_ptr + block_offset * stride_hidden, result_block, mask=mask)
+        y = x * inv_rms * gamma
+        
+        tl.store(output_ptr + offset + (i + block_idx) * stride_hidden, y, mask=mask)
 
 def rmsnorm(x, weight, eps=1e-6):
-    batch_size, seq_len, hidden_dim = x.shape
+    if x.dim() == 3:
+        batch_size, seq_len, hidden_dim = x.shape
+        x_reshaped = x.view(-1, hidden_dim) 
+    else:
+        x_reshaped = x
+        hidden_dim = x.shape[-1]
+    
+    num_elements = x_reshaped.shape[0]
     output = torch.empty_like(x)
     
-    stride_batch = x.stride(0)
-    stride_seq = x.stride(1)
-    stride_hidden = x.stride(2)
-    weight_stride = weight.stride(0)
-    
-    grid = (batch_size * seq_len,)
-    
-    BLOCK_SIZE = triton.next_power_of_2(hidden_dim)
-    BLOCK_SIZE = min(BLOCK_SIZE, 1024)
+    stride_batch_seq = x_reshaped.stride(0)
+    stride_hidden = x_reshaped.stride(1)
+    grid = (num_elements,)
+    BLOCK_SIZE = min(triton.next_power_of_2(hidden_dim), 1024)
     
     rmsnorm_kernel[grid](
-        x, weight, output,
+        x_reshaped, weight, output.view(-1, hidden_dim),
         hidden_dim, eps,
-        stride_batch, stride_seq, stride_hidden,
-        weight_stride,
-        batch_size, seq_len,
+        stride_batch_seq, stride_hidden,
+        num_elements,
         BLOCK_SIZE,
     )
     
@@ -88,6 +80,7 @@ if __name__ == "__main__":
     custom_output = rmsnorm(x, weight)
     
     def rmsnorm_ref(x, weight, eps=1e-6):
+        # RMSNorm(x_i) = (x_i / sqrt((1/N) * Σ(j=1 to N) x_j^2 + ε)) * γ
         rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + eps)
         return x / rms * weight
     

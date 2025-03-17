@@ -45,3 +45,5 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 32](./day32/) - Partial Dequantise Kernel in Triton
 - [Day 33](./day33/) - Animated Color Patterns in Cuda
 - [Day 34](./day34/) - SiLU in Triton
+- [Day 35](./day35/) - RMSNORM in Triton
+- [Day 36](./day36/) - DyT in Cuda ( Transformers without normalisation )
