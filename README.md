@@ -47,3 +47,18 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 34](./day34/) - SiLU in Triton
 - [Day 35](./day35/) - RMSNORM in Triton
 - [Day 36](./day36/) - DyT in Cuda ( Transformers without normalisation )
+- [Day 37](./day37/) - L2 NORM in cuda
+- [Day 38](./day38/) - L1 NORM in cuda
+
+## FUTURE IDEAS
+
+- Flash Attention Implementation - A more memory-efficient attention mechanism
+- Rotary Position Embedding (RoPE) - Key component in modern transformers
+- Fused Multi-Head Attention - Combining operations for better performance
+- KV Cache Implementation - Essential for inference optimization
+- Grouped Query Attention (GQA) - Used in models like Llama 3
+- PagedAttention - Memory-efficient attention algorithm from vLLM
+- Quantization-Aware Training (QAT) - Training with simulated quantization
+- Weight Update with Adam Optimizer - Implement the optimizer directly in CUDA
+- FP8 or FP16 Training Loop - Explore lower precision training
+- Tensor Parallelism - Split computation across multiple GPUs
