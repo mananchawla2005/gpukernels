@@ -1,6 +1,8 @@
 #include <cuda_runtime.h>
 #include <math.h>
-#define TILE_WIDTH 16
+#include <stdio.h>
+
+#define TILE_WIDTH 32
 
 __global__ void tiled_matmul_kernel(float* M, float* N, float* P, int width) {
     __shared__ float Mds[TILE_WIDTH][TILE_WIDTH];
@@ -49,9 +51,20 @@ extern "C" void tiled_matmul(float* M_h, float* N_h, float* P_h, int width) {
     cudaMalloc((void**)&P_d, size);
     cudaMemcpy(M_d, M_h, size, cudaMemcpyHostToDevice);
     cudaMemcpy(N_d, N_h, size, cudaMemcpyHostToDevice);
-    dim3 blockSize(16, 16);
-    dim3 gridSize(ceil(width/16.0), ceil(width/16.0));
+    dim3 blockSize(TILE_WIDTH, TILE_WIDTH);
+    dim3 gridSize(ceil(width/float(TILE_WIDTH)), ceil(width/float(TILE_WIDTH)));
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start);
     tiled_matmul_kernel<<<gridSize, blockSize>>>(M_d, N_d, P_d, width);
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    float milliseconds = 0;
+    cudaEventElapsedTime(&milliseconds, start, stop);
+    printf("Kernel execution time: %f ms\n", milliseconds);
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
     cudaMemcpy(P_h, P_d, size, cudaMemcpyDeviceToHost);
     cudaFree(M_d);
     cudaFree(N_d);

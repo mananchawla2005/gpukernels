@@ -1,6 +1,6 @@
 import torch
 import time
-from gpu_kernels import tiled_matmul
+from gpu_kernels import tiled_matmul_coarsened
 
 # Setup
 size = 5000
@@ -20,7 +20,7 @@ cuda_times = []
 for _ in range(iterations):
     torch.cuda.synchronize()
     start_cuda_time = time.perf_counter()
-    tiled_matmul(M, N, P)
+    tiled_matmul_coarsened(M, N, P)
     torch.cuda.synchronize()
     end_cuda_time = time.perf_counter()
     cuda_times.append(end_cuda_time - start_cuda_time)
@@ -42,7 +42,7 @@ print(f'PYTORCH GPU BENCHMARK TIME (avg): {sum(torch_times)/iterations}')
 
 # Verify results
 cuda_result = P.clone()
-tiled_matmul(M, N, cuda_result)
+tiled_matmul_coarsened(M, N, cuda_result)
 torch_result = P_gpu.cpu()
 max_diff = torch.max(torch.abs(cuda_result - torch_result))
 print(f"\nMaximum difference between CUDA and PyTorch results: {max_diff}")

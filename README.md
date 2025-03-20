@@ -49,6 +49,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 36](./day36/) - DyT in Cuda ( Transformers without normalisation )
 - [Day 37](./day37/) - L2 NORM in cuda
 - [Day 38](./day38/) - L1 NORM in cuda
+- [Day 39](./day39/) - Thread Coarsening TILED MM in cuda
 
 ## FUTURE IDEAS
 
