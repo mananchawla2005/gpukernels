@@ -50,6 +50,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 37](./day37/) - L2 NORM in cuda
 - [Day 38](./day38/) - L1 NORM in cuda
 - [Day 39](./day39/) - Thread Coarsening TILED MM in cuda
+- [Day 40](./day40/) - USING NSIGHT COMPUTE to profile a candidate kernel and generate a report
 
 ## FUTURE IDEAS
 

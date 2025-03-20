@@ -1,4 +1,4 @@
-# Day 5:
+# Day 6:
 # TASK: Global Memory Coalescing MATRIX MULTIPLICATION
 A CUDA kernel to perform coalased matrix multiplication between two matrices.
 
