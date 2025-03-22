@@ -51,6 +51,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 38](./day38/) - L1 NORM in cuda
 - [Day 39](./day39/) - Thread Coarsening TILED MM in cuda
 - [Day 40](./day40/) - USING NSIGHT COMPUTE to profile a candidate kernel and generate a report
+- [Day 41](./day41/) - Swish Activation function in cuda
 
 ## FUTURE IDEAS
 
