@@ -53,7 +53,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 40](./day40/) - USING NSIGHT COMPUTE to profile a candidate kernel and generate a report
 - [Day 41](./day41/) - Swish Activation function in cuda
 - [Day 42](./day42/) - Swapping elements in cuda
-- [Day 43](./day43/) - Flash Attention in cuda (HALFWAY)
+- [Day 43](./day43/) - Flash Attention in cuda
 
 ## FUTURE IDEAS
 
