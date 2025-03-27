@@ -59,7 +59,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 
 ## FUTURE IDEAS
 
-- ~~ Flash Attention Implementation - A more memory-efficient attention mechanism~~
+- <del>Flash Attention Implementation - A more memory-efficient attention mechanism</del>
 - Flash attention Backward pass implementation
 - Rotary Position Embedding (RoPE) - Key component in modern transformers
 - Fused Multi-Head Attention - Combining operations for better performance
