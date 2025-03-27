@@ -54,10 +54,13 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 41](./day41/) - Swish Activation function in cuda
 - [Day 42](./day42/) - Swapping elements in cuda
 - [Day 43](./day43/) - Flash Attention in cuda
+- [Day 44](./day44/) - GeGelu activation in cuda
+
 
 ## FUTURE IDEAS
 
-- Flash Attention Implementation - A more memory-efficient attention mechanism
+- ~~ Flash Attention Implementation - A more memory-efficient attention mechanism~~
+- Flash attention Backward pass implementation
 - Rotary Position Embedding (RoPE) - Key component in modern transformers
 - Fused Multi-Head Attention - Combining operations for better performance
 - KV Cache Implementation - Essential for inference optimization
