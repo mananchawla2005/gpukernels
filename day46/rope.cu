@@ -13,34 +13,27 @@ __global__ void rope_kernel(float *input, float *output, int batch_size, int seq
         int seq_idx = (idx / (head_dim * num_heads)) % seq_len;
         int batch_idx = idx / (head_dim * num_heads * seq_len);
 
-        int pair_dim = dim_idx / 2;
-        bool is_odd = dim_idx % 2;
-
-        float cos_val = cos_cache[seq_idx * (head_dim / 2) + pair_dim];
-        float sin_val = sin_cache[seq_idx * (head_dim / 2) + pair_dim];
-        int input_idx = batch_idx * (seq_len * num_heads * head_dim) + seq_idx * (num_heads * head_dim) + head_idx * head_dim + dim_idx;
-        int paired_dim_idx = dim_idx ^ 1; // XOR with 1 flips the last bit (even<->odd)
-        
-        // alternative int paired_dim_idx = dim_idx % 2 == 0 ? dim_idx + 1 : dim_idx - 1;
-        
-        int paired_input_idx = batch_idx * (seq_len * num_heads * head_dim) +
-                               seq_idx * (num_heads * head_dim) +
-                               head_idx * head_dim +
-                               paired_dim_idx;
-
-        float x = input[input_idx];
-        float y = input[paired_input_idx];
-
-        // Apply rotation: even indices use cos and -sin, odd indices use sin and cos
-        if (!is_odd)
+        // Only process even dimensions (each thread handles a pair)
+        if (dim_idx % 2 == 0)
         {
-            // Even index
-            output[input_idx] = x * cos_val - y * sin_val;
-        }
-        else
-        {
-            // Odd index
-            output[input_idx] = x * sin_val + y * cos_val;
+            int pair_dim = dim_idx / 2;
+            float cos_val = cos_cache[seq_idx * (head_dim / 2) + pair_dim];
+            float sin_val = sin_cache[seq_idx * (head_dim / 2) + pair_dim];
+            
+            // Calculate indices for the current dimension and its pair
+            int current_idx = batch_idx * (seq_len * num_heads * head_dim) + 
+                             seq_idx * (num_heads * head_dim) + 
+                             head_idx * head_dim + 
+                             dim_idx;
+            
+            int paired_idx = current_idx + 1; // The paired index is always the next one
+            
+            float x = input[current_idx];    // Even dimension value
+            float y = input[paired_idx];     // Odd dimension value
+            
+            // Apply rotation
+            output[current_idx] = x * cos_val - y * sin_val;     // Even output
+            output[paired_idx] = x * sin_val + y * cos_val;      // Odd output
         }
     }
 }
@@ -81,6 +74,7 @@ extern "C" void rope(float *input_h, float *output_h, int batch_size, int seq_le
     int blockSize = 256;
     int gridSize = ceil(total_elements / float(blockSize));
     rope_kernel<<<gridSize, blockSize>>>(input_d, output_d, batch_size, seq_len, num_heads, head_dim, cos_cache_d, sin_cache_d);
+    cudaDeviceSynchronize();
     cudaMemcpy(output_h, output_d, size, cudaMemcpyDeviceToHost);
     cudaFree(input_d);
     cudaFree(output_d);

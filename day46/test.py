@@ -83,7 +83,8 @@ if __name__ == "__main__":
     
     rope_module = RotaryPositionalEmbeddings(dim=head_dim)
     out_ref = rope_module(x_ref)
-    
+    print("Kernel:", out_kernel)
+    print("Referencee:", out_ref)
     max_diff = (out_kernel - out_ref).abs().max().item()
     print("Max difference between custom kernel and PyTorch:", max_diff)
     
