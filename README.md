@@ -56,6 +56,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 43](./day43/) - Flash Attention in cuda
 - [Day 44](./day44/) - GeGelu activation in cuda
 - [Day 45](./day45/) - Tinkered with numba cuda
+- [Day 46](./day46/) - Rope Embedding Kernel cuda
 
 
 ## FUTURE IDEAS
