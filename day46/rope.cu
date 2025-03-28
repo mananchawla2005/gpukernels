@@ -26,10 +26,10 @@ __global__ void rope_kernel(float *input, float *output, int batch_size, int seq
                              head_idx * head_dim + 
                              dim_idx;
             
-            int paired_idx = current_idx + 1; // The paired index is always the next one
+            int paired_idx = current_idx + 1; 
             
-            float x = input[current_idx];    // Even dimension value
-            float y = input[paired_idx];     // Odd dimension value
+            float x = input[current_idx];    
+            float y = input[paired_idx];  
             
             // Apply rotation
             output[current_idx] = x * cos_val - y * sin_val;     // Even output
