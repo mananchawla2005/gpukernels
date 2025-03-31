@@ -59,6 +59,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 46](./day46/) - Rope Embedding Kernel cuda
 - [Day 47](./day47/) - SIMPLE BLAS Ops in CUBLAS cuda
 - [Day 48](./day48/) - Matmul using mma(tensor cores) in cuda
+- [Day 49](./day49/) - Rope Backward Pass in cuda
 
 
 ## FUTURE IDEAS
