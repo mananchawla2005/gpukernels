@@ -62,12 +62,14 @@ __global__ void lightning_attention_kernel(float *q, float *k, float *v, float *
     __syncthreads();
 
     // O_Inter = Qt(KV)
-    for (int i = tid; i < D*D; i+=blockDim.x)
-    {
-        int row = i/D;
-        int col = i%D;
-        float result = k_s[row*D+col]*v_s[col*D+row];
-        atomicAdd(&kv[row*D+col], result);
+    for (int i = tid; i < D * D; i += blockDim.x) {
+        int row = i / D;
+        int col = i % D;
+        float sum = 0.0f;
+        for (int s = 0; s < B; s++) {
+            sum += k_s[s * D + row] * v_s[s * D + col];
+        }
+        atomicAdd(&kv[i], sum);
     }
     __syncthreads();
 
@@ -96,7 +98,7 @@ __global__ void lightning_attention_kernel(float *q, float *k, float *v, float *
     // Ot = o_intra + o_inter
     for (int i = tid; i < B * D; i += blockDim.x) {
         if (span+i < n*d) {
-            o[span+i] = o_intra[i]+o_inter[i];
+            o[span+i] = (o_intra[i]+o_inter[i])/sqrtf(d);
         }
     }
 

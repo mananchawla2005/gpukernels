@@ -61,6 +61,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 48](./day48/) - Matmul using mma(tensor cores) in cuda
 - [Day 49](./day49/) - Rope Backward Pass in cuda
 - [Day 50](./day50/) - SELF ATTENTION Backward Pass in cuda
+- [Day 51](./day51/) - Lightning ATTENTION Forward Pass in cuda
 
 
 ## FUTURE IDEAS
