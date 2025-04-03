@@ -18,6 +18,7 @@
 Debug/
 Release/
 x64/
+__pycache*
 
 # Other 
 build/
