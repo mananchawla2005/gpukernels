@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from resnet_kernels import fused_add_relu
+from resnet_kernels import fused_add_relu, fused_conv_batch_relu
 
 class OptimisedBasicBlock(nn.Module):
     """
@@ -8,8 +8,14 @@ class OptimisedBasicBlock(nn.Module):
     """
     def __init__(self, original_block):
         super().__init__()
-        self.conv1 = original_block.conv1
-        self.bn1 = original_block.bn1
+        self.conv1_weight = original_block.conv1.weight.data
+        self.conv2_weight = original_block.conv2.weight.data
+        
+        # Store batch norm parameters
+        self.bn1_weight = original_block.bn1.weight.data
+        self.bn1_bias = original_block.bn1.bias.data
+        self.bn1_mean = original_block.bn1.running_mean
+        self.bn1_var = original_block.bn1.running_var
         self.conv2 = original_block.conv2
         self.bn2 = original_block.bn2
         self.downsample = original_block.downsample
@@ -21,9 +27,15 @@ class OptimisedBasicBlock(nn.Module):
     def forward(self, x):
         identity = x
 
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu1(out)
+        out = fused_conv_batch_relu(
+            x,
+            self.conv1_weight,
+            self.bn1_weight,
+            self.bn1_bias,
+            self.bn1_mean,
+            self.bn1_var
+        )
+
 
         out = self.conv2(out)
         out = self.bn2(out)

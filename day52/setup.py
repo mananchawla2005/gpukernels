@@ -5,13 +5,14 @@ __version__ = "0.0.1"
 
 ext_modules = [
     CUDAExtension('resnet_kernels', [
-        './fused_add_relu_binding.cpp',
+        './bindings.cpp',
         './fused_add_relu.cu',
+        './fused_conv_batch_relu.cu'
     ])
 ]
 
 setup(
-    name='fused_add_relu',
+    name='fused_resnet_kernels',
     version=__version__,
     ext_modules=ext_modules,
     cmdclass={"build_ext": BuildExtension},
