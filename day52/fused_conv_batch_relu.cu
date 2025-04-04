@@ -15,13 +15,15 @@ __global__ void fused_conv_batch_relu_kernel(
     int height,
     int width,
     int kernel_size,
+    int stride,
+    int padding,
     float epsilon)         
 {
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int out_row = blockIdx.y * blockDim.y + threadIdx.y;
+    int out_col = blockIdx.x * blockDim.x + threadIdx.x;
     int batch = blockIdx.z;
 
-    if (row < height && col < width) {
+    if (out_row < height && out_col < width) {
         int center = kernel_size / 2;
         
         #pragma unroll
@@ -30,14 +32,15 @@ __global__ void fused_conv_batch_relu_kernel(
             
             #pragma unroll
             for (int ic = 0; ic < in_channels; ic++) {
-                for (int kh = -center; kh <= center; kh++) {
-                    for (int kw = -center; kw <= center; kw++) {
-                        int h = row + kh;
-                        int w = col + kw;
+                for (int kh = 0; kh < kernel_size; kh++) {
+                    for (int kw = 0; kw < kernel_size; kw++) {
+                        // Calculate input position with stride and padding
+                        int in_row = out_row * stride - padding + kh;
+                        int in_col = out_col * stride - padding + kw;
                         
-                        if (h >= 0 && h < height && w >= 0 && w < width) {
-                            int input_idx = ((batch * in_channels + ic) * height + h) * width + w;
-                            int weight_idx = ((oc * in_channels + ic) * kernel_size + (kh + center)) * kernel_size + (kw + center);
+                        if (in_row >= 0 && in_row < height && in_col >= 0 && in_col < width) {
+                            int input_idx = ((batch * in_channels + ic) * height + in_row) * width + in_col;
+                            int weight_idx = ((oc * in_channels + ic) * kernel_size + kh) * kernel_size + kw;
                             conv_result += input[input_idx] * weights[weight_idx];
                         }
                     }
@@ -48,7 +51,7 @@ __global__ void fused_conv_batch_relu_kernel(
             float bias = bn_bias[oc] - bn_mean[oc] * scale;
             float result = fmaxf(0.0f, conv_result * scale + bias);
             
-            int output_idx = ((batch * out_channels + oc) * height + row) * width + col;
+            int output_idx = ((batch * out_channels + oc) * height + out_row) * width + out_col;
             output[output_idx] = result;
         }
     }
@@ -67,32 +70,11 @@ extern "C" void launch_fused_conv_batch_relu(
     int out_channels,
     int height,
     int width,
-    int kernel_size)
+    int kernel_size,
+    int stride = 1,
+    int padding = 1)
 {
     const float epsilon = 1e-5;
-
-    size_t input_size = batch_size * in_channels * height * width * sizeof(float);
-    size_t output_size = batch_size * out_channels * height * width * sizeof(float);
-    size_t weights_size = out_channels * in_channels * kernel_size * kernel_size * sizeof(float);
-    size_t bn_size = out_channels * sizeof(float);
-
-    float *d_input, *d_output, *d_weights;
-    float *d_bn_weight, *d_bn_bias, *d_bn_mean, *d_bn_var;
-    
-    cudaMalloc(&d_input, input_size);
-    cudaMalloc(&d_output, output_size);
-    cudaMalloc(&d_weights, weights_size);
-    cudaMalloc(&d_bn_weight, bn_size);
-    cudaMalloc(&d_bn_bias, bn_size);
-    cudaMalloc(&d_bn_mean, bn_size);
-    cudaMalloc(&d_bn_var, bn_size);
-
-    cudaMemcpy(d_input, input, input_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_weights, weights, weights_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_bn_weight, bn_weight, bn_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_bn_bias, bn_bias, bn_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_bn_mean, bn_mean, bn_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_bn_var, bn_var, bn_size, cudaMemcpyHostToDevice);
     
     dim3 blockSize(16, 16);
     dim3 gridSize(
@@ -102,19 +84,11 @@ extern "C" void launch_fused_conv_batch_relu(
     );
     
     fused_conv_batch_relu_kernel<<<gridSize, blockSize>>>(
-        d_input, d_output, d_weights, d_bn_weight, d_bn_bias,
-        d_bn_mean, d_bn_var, batch_size,
+        input, output, weights, bn_weight, bn_bias,
+        bn_mean, bn_var, batch_size,
         in_channels, out_channels, height, width,
-        kernel_size, epsilon
+        kernel_size, stride, padding, epsilon
     );
 
-    cudaMemcpy(output, d_output, output_size, cudaMemcpyDeviceToHost);
-
-    cudaFree(d_input);
-    cudaFree(d_output);
-    cudaFree(d_weights);
-    cudaFree(d_bn_weight);
-    cudaFree(d_bn_bias);
-    cudaFree(d_bn_mean);
-    cudaFree(d_bn_var);
+    cudaDeviceSynchronize();
 }

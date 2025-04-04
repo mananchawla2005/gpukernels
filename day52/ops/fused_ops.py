@@ -22,7 +22,7 @@ class OptimisedBasicBlock(nn.Module):
         self.stride = original_block.stride
         
         # Not needed
-        self.relu1 = original_block.relu
+        # self.relu1 = original_block.relu
     
     def forward(self, x):
         identity = x
@@ -33,7 +33,9 @@ class OptimisedBasicBlock(nn.Module):
             self.bn1_weight,
             self.bn1_bias,
             self.bn1_mean,
-            self.bn1_var
+            self.bn1_var,
+            self.stride,
+            1
         )
 
 

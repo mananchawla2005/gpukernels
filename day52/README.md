@@ -15,9 +15,9 @@ ResNet architectures rely heavily on residual connections that perform an elemen
 
 The optimized implementation shows significant performance gains, especially with larger batch sizes:
 
-| Batch Size | Standard Model | Optimized Model | Improvement |
-|------------|----------------|-----------------|-------------|
-| 64         | CPU: 96.903ms<br>CUDA: 111.147ms | CPU: 22.083ms<br>CUDA: 92.403ms | CPU: 77.2%<br>CUDA: 16.9% |
+| Batch Size | Standard Model | With Fused Add-ReLU | Fused Add-ReLU + Fused Batch Conv ReLU | Improvement |
+|------------|----------------|---------------------|---------------------------------------|-------------|
+| 64         | CPU: 96.903ms<br>CUDA: 111.147ms | CPU: 22.083ms<br>CUDA: 92.403ms | CPU: 12.832ms<br>CUDA: 63.990ms | CPU: 77.2%<br>CUDA: 16.9% |
 
 Key observations:
 - CPU time reduction of 77.2% due to fewer kernel launches and synchronization points

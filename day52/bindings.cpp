@@ -15,7 +15,9 @@ extern "C" void launch_fused_conv_batch_relu(
     int out_channels,
     int height,
     int width,
-    int kernel_size);
+    int kernel_size,
+    int stride,
+    int padding);
 
 PYBIND11_MODULE(resnet_kernels, m) {
     m.def(
@@ -54,7 +56,9 @@ PYBIND11_MODULE(resnet_kernels, m) {
            torch::Tensor bn_weight,
            torch::Tensor bn_bias,
            torch::Tensor bn_mean,
-           torch::Tensor bn_var) {
+           torch::Tensor bn_var,
+           int stride = 1,
+           int padding = 1) {
             TORCH_CHECK(input.dtype() == torch::kFloat32, "input tensor must be float32");
             TORCH_CHECK(weights.dtype() == torch::kFloat32, "weights tensor must be float32");
             TORCH_CHECK(bn_weight.dtype() == torch::kFloat32, "bn_weight tensor must be float32");
@@ -70,8 +74,9 @@ PYBIND11_MODULE(resnet_kernels, m) {
             int width = input_sizes[3];
             int out_channels = weight_sizes[0];
             int kernel_size = weight_sizes[2];
-
-            auto output = torch::empty({batch_size, out_channels, height, width}, 
+            int out_height = (height + 2 * padding - kernel_size) / stride + 1;
+            int out_width = (width + 2 * padding - kernel_size) / stride + 1;
+            auto output = torch::empty({batch_size, out_channels, out_height, out_width}, 
                 input.options());
 
             auto input_contig = input.contiguous();
@@ -95,7 +100,10 @@ PYBIND11_MODULE(resnet_kernels, m) {
                 out_channels,
                 height,
                 width,
-                kernel_size
+                kernel_size,
+                stride,
+                padding
+           
             );
 
             return output;
@@ -106,6 +114,8 @@ PYBIND11_MODULE(resnet_kernels, m) {
         py::arg("bn_weight"),
         py::arg("bn_bias"),
         py::arg("bn_mean"),
-        py::arg("bn_var")
+        py::arg("bn_var"),
+        py::arg("stride") = 1,
+        py::arg("padding") = 1
     );
 }
