@@ -64,6 +64,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 51](./day51/) - Lightning ATTENTION Forward Pass in cuda
 - [Day 52](./day52/) - Optimising restnet18 using custom fused add relu cuda kernel
 - [Day 53](./day53/) - Optimising kokoro using custom fused cuda kernels (Over next few days I will be optimising different ops in the model and all of the kernels would be applied here in the kokoro pipeline)
+- [Day 54](./day54/) - Triplet Loss in cuda ( for constrastive training )
 
 
 ## FUTURE IDEAS
