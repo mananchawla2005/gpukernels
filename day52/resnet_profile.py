@@ -32,7 +32,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
 
 print("Standard ResNet18 Performance:")
 print(prof_standard.key_averages().table(sort_by="cuda_time_total", row_limit=2))
-prof_standard.export_chrome_trace("standard_trace.json")
+# prof_standard.export_chrome_trace("standard_trace.json")
 
 # Clear cache between runs for fair comparison
 torch.cuda.empty_cache()
@@ -44,4 +44,4 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
 
 print("\nOptimized ResNet18 Performance:")
 print(prof_optimized.key_averages().table(sort_by="cuda_time_total", row_limit=2))
-prof_optimized.export_chrome_trace("optimized_trace.json")
+prof_optimized.export_chrome_trace("optimized_third_trace.json")

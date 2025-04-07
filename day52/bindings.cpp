@@ -17,7 +17,8 @@ extern "C" void launch_fused_conv_batch_relu(
     int width,
     int kernel_size,
     int stride,
-    int padding);
+    int padding,
+    bool apply_relu);
 
 PYBIND11_MODULE(resnet_kernels, m) {
     m.def(
@@ -58,7 +59,8 @@ PYBIND11_MODULE(resnet_kernels, m) {
            torch::Tensor bn_mean,
            torch::Tensor bn_var,
            int stride = 1,
-           int padding = 1) {
+           int padding = 1,
+           bool apply_relu = true) {
             TORCH_CHECK(input.dtype() == torch::kFloat32, "input tensor must be float32");
             TORCH_CHECK(weights.dtype() == torch::kFloat32, "weights tensor must be float32");
             TORCH_CHECK(bn_weight.dtype() == torch::kFloat32, "bn_weight tensor must be float32");
@@ -102,8 +104,8 @@ PYBIND11_MODULE(resnet_kernels, m) {
                 width,
                 kernel_size,
                 stride,
-                padding
-           
+                padding,
+                apply_relu
             );
 
             return output;
@@ -116,6 +118,7 @@ PYBIND11_MODULE(resnet_kernels, m) {
         py::arg("bn_mean"),
         py::arg("bn_var"),
         py::arg("stride") = 1,
-        py::arg("padding") = 1
+        py::arg("padding") = 1,
+        py::arg("apply_relu") = true
     );
 }

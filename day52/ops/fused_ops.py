@@ -16,8 +16,12 @@ class OptimisedBasicBlock(nn.Module):
         self.bn1_bias = original_block.bn1.bias.data
         self.bn1_mean = original_block.bn1.running_mean
         self.bn1_var = original_block.bn1.running_var
-        self.conv2 = original_block.conv2
-        self.bn2 = original_block.bn2
+
+        self.bn2_weight = original_block.bn2.weight.data
+        self.bn2_bias = original_block.bn2.bias.data
+        self.bn2_mean = original_block.bn2.running_mean
+        self.bn2_var = original_block.bn2.running_var
+        
         self.downsample = original_block.downsample
         self.stride = original_block.stride
         
@@ -35,12 +39,22 @@ class OptimisedBasicBlock(nn.Module):
             self.bn1_mean,
             self.bn1_var,
             self.stride,
-            1
+            1,
+            True # relu
         )
 
 
-        out = self.conv2(out)
-        out = self.bn2(out)
+        out = fused_conv_batch_relu(
+            out,
+            self.conv2_weight,
+            self.bn2_weight,
+            self.bn2_bias,
+            self.bn2_mean,
+            self.bn2_var,
+            1,         # stride  for conv2
+            1,         # padding value
+            False   
+        )
 
         if self.downsample is not None:
             identity = self.downsample(x)

@@ -17,7 +17,8 @@ __global__ void fused_conv_batch_relu_kernel(
     int kernel_size,
     int stride,
     int padding,
-    float epsilon)         
+    float epsilon,
+    bool apply_relu)         
 {
     int out_row = blockIdx.y * blockDim.y + threadIdx.y;
     int out_col = blockIdx.x * blockDim.x + threadIdx.x;
@@ -72,7 +73,8 @@ extern "C" void launch_fused_conv_batch_relu(
     int width,
     int kernel_size,
     int stride = 1,
-    int padding = 1)
+    int padding = 1,
+    bool apply_relu = true)
 {
     const float epsilon = 1e-5;
     
@@ -87,7 +89,7 @@ extern "C" void launch_fused_conv_batch_relu(
         input, output, weights, bn_weight, bn_bias,
         bn_mean, bn_var, batch_size,
         in_channels, out_channels, height, width,
-        kernel_size, stride, padding, epsilon
+        kernel_size, stride, padding, epsilon, apply_relu
     );
 
     cudaDeviceSynchronize();
