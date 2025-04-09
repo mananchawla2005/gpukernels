@@ -66,6 +66,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 53](./day53/) - Optimising kokoro using custom fused cuda kernels (Over next few days I will be optimising different ops in the model and all of the kernels would be applied here in the kokoro pipeline)
 - [Day 54](./day54/) - Triplet Loss in cuda ( for constrastive training )
 - [Day 55](./day55/) - MSE in cuda
+- [Day 56](./day56/) - AdaIN with Snake Activation in cuda
 
 
 ## FUTURE IDEAS

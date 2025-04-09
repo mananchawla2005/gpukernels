@@ -5,7 +5,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from kokoro_kernels import adain_snake
 
 # https://github.com/yl4579/StyleTTS2/blob/main/Modules/utils.py
 def init_weights(m, mean=0.0, std=0.01):
@@ -31,6 +31,26 @@ class AdaIN1d(nn.Module):
         return (1 + gamma) * self.norm(x) + beta
 
 
+class FusedAdaINSnake(torch.nn.Module):
+    def __init__(self, style_dim, num_features, alpha=None):
+        super().__init__()
+        self.fc = torch.nn.Linear(style_dim, num_features*2)
+        if alpha is None:
+            self.alpha = torch.nn.Parameter(torch.ones(1, num_features, 1))
+        else:
+            self.alpha = alpha
+
+    def forward(self, x, s):
+        h = self.fc(s)
+        h = h.view(h.size(0), h.size(1), 1)
+        gamma, beta = torch.chunk(h, chunks=2, dim=1)
+        
+        return adain_snake(x, gamma, beta, 
+                          x.mean(dim=2, keepdim=True), 
+                          x.var(dim=2, keepdim=True, unbiased=False), 
+                          self.alpha)
+
+
 class AdaINResBlock1(nn.Module):
     def __init__(self, channels, kernel_size=3, dilation=(1, 3, 5), style_dim=64):
         super(AdaINResBlock1, self).__init__()
@@ -52,26 +72,33 @@ class AdaINResBlock1(nn.Module):
                                   padding=get_padding(kernel_size, 1)))
         ])
         self.convs2.apply(init_weights)
-        self.adain1 = nn.ModuleList([
-            AdaIN1d(style_dim, channels),
-            AdaIN1d(style_dim, channels),
-            AdaIN1d(style_dim, channels),
-        ])
-        self.adain2 = nn.ModuleList([
-            AdaIN1d(style_dim, channels),
-            AdaIN1d(style_dim, channels),
-            AdaIN1d(style_dim, channels),
-        ])
+        # self.adain1 = nn.ModuleList([
+        #     AdaIN1d(style_dim, channels),
+        #     AdaIN1d(style_dim, channels),
+        #     AdaIN1d(style_dim, channels),
+        # ])
+        # self.adain2 = nn.ModuleList([
+        #     AdaIN1d(style_dim, channels),
+        #     AdaIN1d(style_dim, channels),
+        #     AdaIN1d(style_dim, channels),
+        # ])
         self.alpha1 = nn.ParameterList([nn.Parameter(torch.ones(1, channels, 1)) for i in range(len(self.convs1))])
         self.alpha2 = nn.ParameterList([nn.Parameter(torch.ones(1, channels, 1)) for i in range(len(self.convs2))])
-
+        self.adain1 = nn.ModuleList([
+            FusedAdaINSnake(style_dim, channels, alpha=self.alpha1[i]) 
+            for i in range(len(self.convs1))
+        ])
+        self.adain2 = nn.ModuleList([
+            FusedAdaINSnake(style_dim, channels, alpha=self.alpha2[i])
+            for i in range(len(self.convs2))
+        ])
     def forward(self, x, s):
         for c1, c2, n1, n2, a1, a2 in zip(self.convs1, self.convs2, self.adain1, self.adain2, self.alpha1, self.alpha2):
             xt = n1(x, s)
-            xt = xt + (1 / a1) * (torch.sin(a1 * xt) ** 2)  # Snake1D
+            # xt = xt + (1 / a1) * (torch.sin(a1 * xt) ** 2)  # Snake1D
             xt = c1(xt)
             xt = n2(xt, s)
-            xt = xt + (1 / a2) * (torch.sin(a2 * xt) ** 2)  # Snake1D
+            # xt = xt + (1 / a2) * (torch.sin(a2 * xt) ** 2)  # Snake1D
             xt = c2(xt)
             x = xt + x
         return x
