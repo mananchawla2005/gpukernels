@@ -67,6 +67,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 54](./day54/) - Triplet Loss in cuda ( for constrastive training )
 - [Day 55](./day55/) - MSE in cuda
 - [Day 56](./day56/) - AdaIN with Snake Activation in cuda
+- [Day 57](./day57/) - MISH activation in cuda
 
 
 ## FUTURE IDEAS
