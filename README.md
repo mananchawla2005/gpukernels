@@ -69,6 +69,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 56](./day56/) - AdaIN with Snake Activation in cuda
 - [Day 57](./day57/) - MISH activation in cuda
 - [Day 58](./day58/) - Cosine Similarity in cuda
+- [Day 59](./day59/) - Hinge Loss in cuda
 
 
 ## FUTURE IDEAS
