@@ -70,6 +70,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 57](./day57/) - MISH activation in cuda
 - [Day 58](./day58/) - Cosine Similarity in cuda
 - [Day 59](./day59/) - Hinge Loss in cuda
+- [Day 60](./day60/) - KL DIVERGENCE in cuda
 
 
 ## FUTURE IDEAS
