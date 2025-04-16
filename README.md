@@ -72,6 +72,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 59](./day59/) - Hinge Loss in cuda
 - [Day 60](./day60/) - KL DIVERGENCE in cuda
 - [Day 61](./day61/) - GEMM BIAS RELU in cuda
+- [Day 62](./day62/) - Vector, Ldg, restrict and warp divergence optimised ELU kernel in cuda
 
 
 ## FUTURE IDEAS
