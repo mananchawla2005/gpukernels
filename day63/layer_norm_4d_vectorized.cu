@@ -4,7 +4,7 @@
 
 
 template <int BLOCK_SIZE>
-__global__ void layer_norm_4d_kernel_vectorized(
+__global__ __launch_bounds__(1024) void layer_norm_4d_kernel_vectorized(
     const float* __restrict__ X, const float* __restrict__ gamma, const float* __restrict__ beta,
     float* Y, size_t B, size_t F, size_t D1, size_t D2, float epsilon
 ) {
@@ -57,8 +57,17 @@ __global__ void layer_norm_4d_kernel_vectorized(
 }
 
 extern "C" void solution(const float* X, const float* gamma, const float* beta, float* Y, size_t B, size_t F, size_t D1, size_t D2) {
-    constexpr int BLOCK = 1024;
+    size_t norm_size = F*D1*D2;
+    int block_size;
+    if (norm_size > 2048*4) block_size = 1024;
+    else if (norm_size > 1024*4) block_size = 512;
+    else block_size = 256;
+    
     const float epsilon = 1e-5f;
     size_t shared_memory    = 0; // auto allocated note to self
-    layer_norm_4d_kernel_vectorized<BLOCK><<<B, BLOCK, shared_memory>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
+    switch (block_size) {
+        case 1024: layer_norm_4d_kernel_vectorized<1024><<<B, 1024>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon); break;
+        case 512: layer_norm_4d_kernel_vectorized<512><<<B, 512>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon); break;
+        case 256: layer_norm_4d_kernel_vectorized<256><<<B, 256>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon); break;
+    }
 }
