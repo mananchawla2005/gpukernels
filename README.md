@@ -73,7 +73,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 60](./day60/) - KL DIVERGENCE in cuda
 - [Day 61](./day61/) - GEMM BIAS RELU in cuda
 - [Day 62](./day62/) - Vector, Ldg, restrict and warp divergence optimised ELU kernel in cuda
-- [Day 63](./day63/) - Vector, Ldg, restrict and optimized mean and variance calculation Layer Normalization kernel in cuda with shared memory
+- [Day 63](./day63/) - Parallel Block Reduction, Vector, Ldg, restrict and optimized mean and variance calculation Layer Normalization kernel in cuda with shared memory
 
 
 ## FUTURE IDEAS

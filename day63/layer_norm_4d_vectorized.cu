@@ -1,89 +1,64 @@
 #include <cuda_runtime.h>
 #include <math.h>
+#include <cub/cub.cuh>
 
+
+template <int BLOCK_SIZE>
 __global__ void layer_norm_4d_kernel_vectorized(
-    const float* __restrict__ X,
-    const float* __restrict__ gamma,
-    const float* __restrict__ beta,
-    float* Y,
-    size_t B, size_t F, size_t D1, size_t D2,
-    float epsilon
+    const float* __restrict__ X, const float* __restrict__ gamma, const float* __restrict__ beta,
+    float* Y, size_t B, size_t F, size_t D1, size_t D2, float epsilon
 ) {
     const int batch_idx = blockIdx.x;
     if (batch_idx >= B) return;
 
     const int tid = threadIdx.x;
-    const int block_size = blockDim.x;
-
-    const size_t norm_size = F * D1 * D2;
-    const size_t batch_offset = batch_idx * norm_size;
-
-    extern __shared__ float shared_mem[];
-    float* sum_shared = shared_mem;
-    float* sum_squares_shared = shared_mem + block_size;
-
-    // Vectorized pointer
+    constexpr size_t vec_factor = 4;
+    const size_t norm_size = F*D1*D2;
+    const size_t batch_offset = batch_idx*norm_size;
     const float4* X4 = reinterpret_cast<const float4*>(X + batch_offset);
-    const float4* gamma4 = reinterpret_cast<const float4*>(gamma);
-    const float4* beta4 = reinterpret_cast<const float4*>(beta);
+    const float4* g4 = reinterpret_cast<const float4*> (gamma);
+    const float4* b4 = reinterpret_cast<const float4*> (beta);
     float4* Y4 = reinterpret_cast<float4*>(Y + batch_offset);
+    size_t vec_sz = norm_size/vec_factor;
 
-    size_t vec_size = norm_size / 4;
-
-    float4 tmp;
-    float local_sum = 0.0f;
-    float local_sum_squares = 0.0f;
-
+    float local_sum = 0.f;
+    float local_sum_squares = 0.f;
     #pragma unroll 4
-    for (size_t i = tid; i < vec_size; i += block_size) {
-        tmp = __ldg(&X4[i]);
-        
-        local_sum += tmp.x + tmp.y + tmp.z + tmp.w;
-        local_sum_squares += tmp.x * tmp.x + tmp.y * tmp.y + tmp.z * tmp.z + tmp.w * tmp.w;
+    for (size_t i = tid; i < vec_sz; i += BLOCK_SIZE) {
+        float4 v = __ldg(&X4[i]);
+        local_sum += v.x + v.y + v.z + v.w;
+        local_sum_squares += v.x*v.x + v.y*v.y + v.z*v.z + v.w*v.w;
     }
 
-    sum_shared[tid] = local_sum;
-    sum_squares_shared[tid] = local_sum_squares;
-    __syncthreads();
+    // block‐reduce a pair <sum, sum_sq> note to self
+    struct Pair { float s, ss; };
+    struct SumOp { __device__ Pair operator()(Pair a, Pair b) const { return {a.s + b.s, a.ss + b.ss}; } };
+    __shared__ typename cub::BlockReduce<Pair, BLOCK_SIZE>::TempStorage tmp;
+    Pair agg = cub::BlockReduce<Pair, BLOCK_SIZE>(tmp).Reduce({local_sum,local_sum_squares}, SumOp());
 
-    #pragma unroll 4
-    for (int stride = block_size / 2; stride > 0; stride >>= 1) {
-        if (tid < stride) {
-            sum_shared[tid] += sum_shared[tid + stride];
-            sum_squares_shared[tid] += sum_squares_shared[tid + stride];
-        }
-        __syncthreads();
-    }
-
-    __shared__ float mean, variance, inv_stddev;
-    if (tid == 0) {
-        mean = sum_shared[0] / norm_size;
-        variance = (sum_squares_shared[0] / norm_size) - (mean * mean);
-        inv_stddev = rsqrtf(variance + epsilon);
+    __shared__ float mean, inv_std;
+    if (tid==0) {
+        mean    =  agg.s / norm_size;
+        float var = (agg.ss / norm_size) - mean*mean;
+        inv_std = rsqrtf(var + epsilon);
     }
     __syncthreads();
 
     #pragma unroll 4
-    for (size_t i = tid; i < vec_size; i += block_size) {
-        tmp = __ldg(&X4[i]);
-        float4 g = __ldg(&gamma4[i]);
-        float4 b = __ldg(&beta4[i]);
-
-        float4 norm;
-        norm.x = fmaf(tmp.x - mean, g.x * inv_stddev, b.x);
-        norm.y = fmaf(tmp.y - mean, g.y * inv_stddev, b.y);
-        norm.z = fmaf(tmp.z - mean, g.z * inv_stddev, b.z);
-        norm.w = fmaf(tmp.w - mean, g.w * inv_stddev, b.w);
-        Y4[i] = norm;
+    for (size_t i = tid; i < vec_sz; i += BLOCK_SIZE) {
+        float4 v = __ldg(&X4[i]);
+        float4 G = __ldg(&g4[i]), Bv = __ldg(&b4[i]), N;
+        N.x = __fmaf_rn((v.x-mean)*inv_std, G.x, Bv.x);
+        N.y = __fmaf_rn((v.y-mean)*inv_std, G.y, Bv.y);
+        N.z = __fmaf_rn((v.z-mean)*inv_std, G.z, Bv.z);
+        N.w = __fmaf_rn((v.w-mean)*inv_std, G.w, Bv.w);
+        Y4[i] = N;
     }
 }
 
 extern "C" void solution(const float* X, const float* gamma, const float* beta, float* Y, size_t B, size_t F, size_t D1, size_t D2) {
+    constexpr int BLOCK = 1024;
     const float epsilon = 1e-5f;
-    int block_size = 1024;
-    int grid_size = B;
-    size_t shared_mem_size = block_size * sizeof(float) * 2;
-    layer_norm_4d_kernel_vectorized<<<grid_size, block_size, shared_mem_size>>>(
-        X, gamma, beta, Y, B, F, D1, D2, epsilon
-    );
+    size_t shared_memory    = 0; // auto allocated note to self
+    layer_norm_4d_kernel_vectorized<BLOCK><<<B, BLOCK, shared_memory>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
 }
