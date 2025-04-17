@@ -37,8 +37,9 @@ __global__ __launch_bounds__(1024) void layer_norm_4d_kernel_vectorized(
 
     __shared__ float mean, inv_std;
     if (tid==0) {
-        mean    =  agg.s / norm_size;
-        float var = (agg.ss / norm_size) - mean*mean;
+        float norm_size_inv = 1.0f / norm_size;
+        mean    =  agg.s * norm_size_inv;
+        float var = __fmaf_rn(agg.ss, norm_size_inv, - mean*mean);
         inv_std = rsqrtf(var + epsilon);
     }
     __syncthreads();
