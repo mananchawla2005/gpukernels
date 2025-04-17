@@ -2,8 +2,7 @@
 #include <math.h>
 #include <cub/cub.cuh>
 
-
-template <int BLOCK_SIZE>
+template <int BLOCK_SIZE, int UNROLL_FACTOR>
 __global__ __launch_bounds__(1024) void layer_norm_4d_kernel_vectorized(
     const float* __restrict__ X, const float* __restrict__ gamma, const float* __restrict__ beta,
     float* Y, size_t B, size_t F, size_t D1, size_t D2, float epsilon
@@ -23,7 +22,7 @@ __global__ __launch_bounds__(1024) void layer_norm_4d_kernel_vectorized(
 
     float local_sum = 0.f;
     float local_sum_squares = 0.f;
-    #pragma unroll 4
+    #pragma unroll UNROLL_FACTOR
     for (size_t i = tid; i < vec_sz; i += BLOCK_SIZE) {
         float4 v = __ldg(&X4[i]);
         local_sum += v.x + v.y + v.z + v.w;
@@ -44,7 +43,7 @@ __global__ __launch_bounds__(1024) void layer_norm_4d_kernel_vectorized(
     }
     __syncthreads();
 
-    #pragma unroll 4
+    #pragma unroll UNROLL_FACTOR
     for (size_t i = tid; i < vec_sz; i += BLOCK_SIZE) {
         float4 v = __ldg(&X4[i]);
         float4 G = __ldg(&g4[i]), Bv = __ldg(&b4[i]), N;
@@ -59,15 +58,41 @@ __global__ __launch_bounds__(1024) void layer_norm_4d_kernel_vectorized(
 extern "C" void solution(const float* X, const float* gamma, const float* beta, float* Y, size_t B, size_t F, size_t D1, size_t D2) {
     size_t norm_size = F*D1*D2;
     int block_size;
+    int unroll_factor;
+    
     if (norm_size > 2048*4) block_size = 1024;
     else if (norm_size > 1024*4) block_size = 512;
     else block_size = 256;
     
+    if (norm_size > 256*256) unroll_factor = 8;      
+    else if (norm_size > 128*128) unroll_factor = 4;  
+    else unroll_factor = 2;                     
+    
+    
     const float epsilon = 1e-5f;
-    size_t shared_memory    = 0; // auto allocated note to self
-    switch (block_size) {
-        case 1024: layer_norm_4d_kernel_vectorized<1024><<<B, 1024>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon); break;
-        case 512: layer_norm_4d_kernel_vectorized<512><<<B, 512>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon); break;
-        case 256: layer_norm_4d_kernel_vectorized<256><<<B, 256>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon); break;
+    
+    if (block_size == 1024) {
+        if (unroll_factor == 8)
+            layer_norm_4d_kernel_vectorized<1024, 8><<<B, 1024>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
+        else if (unroll_factor == 4)
+            layer_norm_4d_kernel_vectorized<1024, 4><<<B, 1024>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
+        else
+            layer_norm_4d_kernel_vectorized<1024, 2><<<B, 1024>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
+    }
+    else if (block_size == 512) {
+        if (unroll_factor == 8)
+            layer_norm_4d_kernel_vectorized<512, 8><<<B, 512>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
+        else if (unroll_factor == 4)
+            layer_norm_4d_kernel_vectorized<512, 4><<<B, 512>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
+        else
+            layer_norm_4d_kernel_vectorized<512, 2><<<B, 512>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
+    }
+    else {
+        if (unroll_factor == 8)
+            layer_norm_4d_kernel_vectorized<256, 8><<<B, 256>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
+        else if (unroll_factor == 4)
+            layer_norm_4d_kernel_vectorized<256, 4><<<B, 256>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
+        else
+            layer_norm_4d_kernel_vectorized<256, 2><<<B, 256>>>(X, gamma, beta, Y, B, F, D1, D2, epsilon);
     }
 }
