@@ -55,14 +55,13 @@ __global__ void layer_norm_4d_kernel_vectorized(
         __syncthreads();
     }
 
-    __shared__ float mean, variance;
+    __shared__ float mean, variance, inv_stddev;
     if (tid == 0) {
         mean = sum_shared[0] / norm_size;
         variance = (sum_squares_shared[0] / norm_size) - (mean * mean);
+        inv_stddev = rsqrtf(variance + epsilon);
     }
     __syncthreads();
-
-    float stddev = sqrtf(variance + epsilon);
 
     #pragma unroll 4
     for (size_t i = tid; i < vec_size; i += block_size) {
@@ -71,18 +70,17 @@ __global__ void layer_norm_4d_kernel_vectorized(
         float4 b = __ldg(&beta4[i]);
 
         float4 norm;
-        norm.x = (tmp.x - mean) / stddev * g.x + b.x;
-        norm.y = (tmp.y - mean) / stddev * g.y + b.y;
-        norm.z = (tmp.z - mean) / stddev * g.z + b.z;
-        norm.w = (tmp.w - mean) / stddev * g.w + b.w;
-
+        norm.x = fmaf(tmp.x - mean, g.x * inv_stddev, b.x);
+        norm.y = fmaf(tmp.y - mean, g.y * inv_stddev, b.y);
+        norm.z = fmaf(tmp.z - mean, g.z * inv_stddev, b.z);
+        norm.w = fmaf(tmp.w - mean, g.w * inv_stddev, b.w);
         Y4[i] = norm;
     }
 }
 
 extern "C" void solution(const float* X, const float* gamma, const float* beta, float* Y, size_t B, size_t F, size_t D1, size_t D2) {
     const float epsilon = 1e-5f;
-    int block_size = 256;
+    int block_size = 1024;
     int grid_size = B;
     size_t shared_mem_size = block_size * sizeof(float) * 2;
     layer_norm_4d_kernel_vectorized<<<grid_size, block_size, shared_mem_size>>>(
