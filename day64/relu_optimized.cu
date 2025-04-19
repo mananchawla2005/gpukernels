@@ -7,28 +7,25 @@ __global__ void solution_kernel(const float* __restrict__ input, float* __restri
     const int tx = blockIdx.x * blockDim.x + threadIdx.x; // column index
     const int ty = blockIdx.y * blockDim.y + threadIdx.y; // row index
     
-    if (tx < m/4 && ty < n/4) {
-        #pragma unroll
-        for (int i = 0; i < 4; i++) {
-            const int idx = (ty*4 + i) * (m/4) + tx;
-            
-            float4 v = __ldg(reinterpret_cast<const float4*>(input) + idx);
-            
-            v.x = fmaxf(v.x, 0.0f);
-            v.y = fmaxf(v.y, 0.0f);
-            v.z = fmaxf(v.z, 0.0f);
-            v.w = fmaxf(v.w, 0.0f);
-            
-            reinterpret_cast<float4*>(output)[idx] = v;
-        }
+    if (tx < m/4 && ty < n) {
+        const int idx = ty * (m/4) + tx;
+        
+        float4 v = __ldg(reinterpret_cast<const float4*>(input) + idx);
+        
+        v.x = fmaxf(v.x, 0.0f);
+        v.y = fmaxf(v.y, 0.0f);
+        v.z = fmaxf(v.z, 0.0f);
+        v.w = fmaxf(v.w, 0.0f);
+        
+        reinterpret_cast<float4*>(output)[idx] = v;
     }
 }
 
 extern "C" void solution(const float* input, float* output, size_t n, size_t m) {
     
-    dim3 blockDim(32, 8); 
+    dim3 blockDim(32, 16); 
     dim3 gridDim((m/4 + blockDim.x - 1) / blockDim.x, 
-                 (n/4 + blockDim.y - 1) / blockDim.y);
+                 (n + blockDim.y - 1) / blockDim.y);
     
     solution_kernel<<<gridDim, blockDim>>>(input, output, n, m);
 }
