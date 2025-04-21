@@ -77,6 +77,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 64](./day64/) - Relu Kernel optimised using 2d indexing and float4 vectorization
 - [Day 65](./day65/) - Selu Kernel optimised using 2d indexing and float4 vectorization
 - [Day 66](./day66/) - Sigmoid Kernel optimised using 2d indexing and float4 vectorization
+- [Day 67](./day67/) - Tanh Kernel optimised using 2d indexing and float4 vectorization
 
 ## FUTURE IDEAS
 
