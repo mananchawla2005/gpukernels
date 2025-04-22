@@ -1,0 +1,1 @@
+Command to Run -> nvcc ./transpose_cute.cu -o transpose_cute.exe -I"C:\Me\Projects\AI\gpukernels\cutlass\include" -I"C:\Me\Projects\AI\gpukernels\day68" --extended-lambda --expt-relaxed-constexpr --std=c++17
