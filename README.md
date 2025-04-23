@@ -79,6 +79,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 66](./day66/) - Sigmoid Kernel optimised using 2d indexing and float4 vectorization
 - [Day 67](./day67/) - Tanh Kernel optimised using 2d indexing and float4 vectorization
 - [Day 68](./day68/) - Transpose kernel using Cutlass Cute framework
+- [Day 69](./day69/) - Huberloss float8 cuda
 
 ## FUTURE IDEAS
 
