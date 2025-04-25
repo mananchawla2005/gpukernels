@@ -63,13 +63,6 @@ int main() {
     auto tensor_DT = make_tensor(make_gmem_ptr(D_d), gmemLayoutDT);
 
     constexpr int BLOCK_SIZE = 32;
-    // dim3 blockDim(BLOCK_SIZE * BLOCK_SIZE / 256, 1);
-    // if (BLOCK_SIZE * BLOCK_SIZE > 1024) {
-    //     blockDim.x = 1024;
-    // }
-    // dim3 gridDim((N + BLOCK_SIZE - 1) / BLOCK_SIZE, 
-    //              (M + BLOCK_SIZE - 1) / BLOCK_SIZE);
-   // thr_layout = (8, BLOCK_SIZE/8) → 8*(BLOCK_SIZE/8)==BLOCK_SIZE partitions/threads
    constexpr int THREADS = BLOCK_SIZE;
    dim3 blockDim(THREADS, 1);
 
@@ -87,11 +80,10 @@ int main() {
         }
         printf("\n");
     }
-    
     printf("\nTransposed Output Matrix (first 4x4):\n");
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
-            printf("%7.1f ", h_output[j*N+i]);  // interpreting as col-major
+            printf("%7.1f ", h_output[i * M + j]);  
         }
         printf("\n");
     }
@@ -99,9 +91,9 @@ int main() {
     bool correct = true;
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
-            if(h_input[i * N + j] != h_output[i * N + j]) {
+            if(h_input[i * N + j] != h_output[j * M + i]) {  
                 printf("Mismatch at [%d,%d]: input=%.1f, output=%.1f\n",
-                       i, j, h_input[i * N + j], h_output[i * N + j]);
+                       i, j, h_input[i * N + j], h_output[j * M + i]);
                 correct = false;
             }
         }
