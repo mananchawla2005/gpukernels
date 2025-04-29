@@ -1,7 +1,6 @@
 #include <cuda_runtime.h>
-#include <float.h>  // for FLT_MAX
 
-__global__ void maxpool2d_kernel(const float *__restrict__ input,
+__global__ void avgpool2d_kernel(const float *__restrict__ input,
                                  int H, int W,
                                  int kernel_size, int stride, int padding, int dilation,
                                  int H_out, int W_out,
@@ -12,7 +11,8 @@ __global__ void maxpool2d_kernel(const float *__restrict__ input,
     if (out_y >= H_out || out_x >= W_out)
         return;
 
-    float max_val = -FLT_MAX;
+    float sum = 0.0f;
+    int count = 0;
     for (int m = 0; m < kernel_size; ++m)
     {
         int in_y = out_y * stride + m * dilation - padding;
@@ -22,13 +22,12 @@ __global__ void maxpool2d_kernel(const float *__restrict__ input,
 
             if (in_y >= 0 && in_y < H && in_x >= 0 && in_x < W)
             {
-                float v = input[in_y * W + in_x];
-                if (v > max_val)
-                    max_val = v;
+                sum += input[in_y * W + in_x];
+                count++;
             }
         }
     }
-    output[out_y * W_out + out_x] = max_val;
+    output[out_y * W_out + out_x] = count > 0 ? sum / count : 0.0f;
 }
 
 extern "C" void solution(const float *input,
@@ -47,7 +46,7 @@ extern "C" void solution(const float *input,
     dim3 gridSize((W_out + blockSize.x - 1) / blockSize.x,
               (H_out + blockSize.y - 1) / blockSize.y);
 
-    maxpool2d_kernel<<<gridSize, blockSize>>>(
+    avgpool2d_kernel<<<gridSize, blockSize>>>(
         input,
         (int)H, (int)W,
         kernel_size, stride, padding, dilation,

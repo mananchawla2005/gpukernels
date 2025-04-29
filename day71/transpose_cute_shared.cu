@@ -11,18 +11,17 @@ auto tensor_shape = make_shape(M, N);
 auto tensor_shape_trans = make_shape(N, M);
 auto gmemLayoutS = make_layout(tensor_shape, GenRowMajor{});
 auto gmemLayoutD = make_layout(tensor_shape_trans, GenRowMajor{});
-auto gmemLayoutDT = make_layout(tensor_shape, GenColMajor{});
 
 using SrcTensor = decltype(make_tensor(make_gmem_ptr(S_d), gmemLayoutS));
-using DstTensor = decltype(make_tensor(make_gmem_ptr(D_d), gmemLayoutDT));
+using DstTensor = decltype(make_tensor(make_gmem_ptr(D_d), gmemLayoutD));
 
 template <int BLOCK_SIZE>
 __global__ void tiled_transpose_kernel_shared(
     SrcTensor tensor_S,
-    DstTensor tensor_DT,
+    DstTensor tensor_D,
     int M_, int N_)
 {
-    using b = Int<BLOCK_SIZE>;
+    using b = Int<64>;
     auto block_shape = make_shape(b{}, b{});
 
     auto smemLayout = make_layout(block_shape, GenRowMajor{});
@@ -36,12 +35,12 @@ __global__ void tiled_transpose_kernel_shared(
     Tensor sD = make_tensor(make_smem_ptr(smem.data()), smemLayoutT);
 
     Tensor tiled_tensor_S = tiled_divide(tensor_S, block_shape);
-    Tensor tiled_tensor_DT = tiled_divide(tensor_DT, block_shape);
+    Tensor tiled_tensor_D = tiled_divide(tensor_D, block_shape);
 
     Tensor gS = tiled_tensor_S(make_coord(_, _), blockIdx.y, blockIdx.x);
-    Tensor gD = tiled_tensor_DT(make_coord(_, _), blockIdx.x, blockIdx.y);
+    Tensor gD = tiled_tensor_D(make_coord(_, _), blockIdx.x, blockIdx.y);
 
-    auto thr_layout = make_layout(make_shape(Int<8>{}, Int<BLOCK_SIZE / 8>{}), GenRowMajor{});
+    auto thr_layout = make_layout(make_shape(Int<8>{}, Int<32>{}), GenRowMajor{});
 
     Tensor tSgS = local_partition(gS, thr_layout, threadIdx.x);
     Tensor tSsS = local_partition(sS, thr_layout, threadIdx.x);
@@ -51,7 +50,8 @@ __global__ void tiled_transpose_kernel_shared(
     // GMEM -> SMEM
     copy(tSgS, tSsS);
 
-
+    cp_async_fence();
+    cp_async_wait<0>();
     __syncthreads();
 
     // SMEM -> GMEM (transposed)
@@ -74,17 +74,16 @@ int main()
     cudaMemcpy(S_d, h_input, M * N * sizeof(float), cudaMemcpyHostToDevice);
     auto tensor_S = make_tensor(make_gmem_ptr(S_d), gmemLayoutS);
     auto tensor_D = make_tensor(make_gmem_ptr(D_d), gmemLayoutD);
-    auto tensor_DT = make_tensor(make_gmem_ptr(D_d), gmemLayoutDT);
 
-    constexpr int BLOCK_SIZE = 32;
+    constexpr int BLOCK_SIZE = 256;
     constexpr int THREADS = BLOCK_SIZE;
     dim3 blockDim(THREADS, 1);
 
     dim3 gridDim((N + BLOCK_SIZE - 1) / BLOCK_SIZE,
                  (M + BLOCK_SIZE - 1) / BLOCK_SIZE);
-    size_t smem_size = BLOCK_SIZE * BLOCK_SIZE * sizeof(float);
+    size_t smem_size = 64 * 64 * sizeof(float);
 
-    tiled_transpose_kernel_shared<BLOCK_SIZE><<<gridDim, blockDim, smem_size>>>(tensor_S, tensor_DT, M, N);
+    tiled_transpose_kernel_shared<BLOCK_SIZE><<<gridDim, blockDim, smem_size>>>(tensor_S, tensor_D, M, N);
     cudaError_t err = cudaGetLastError();
     if(err != cudaSuccess) {
       printf("Kernel launch error: %s\n", cudaGetErrorString(err));

@@ -69,7 +69,7 @@ int main() {
     printf("\nTransposed Output Matrix (first 4x4):\n");
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
-            printf("%7.1f ", h_output[j*N+i]);  // Always interpret as col-major
+            printf("%7.1f ", h_output[j*M+i]);  // Always interpret as col-major
         }
         printf("\n");
     }
@@ -77,9 +77,9 @@ int main() {
     bool correct = true;
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
-            if(h_input[i * N + j] != h_output[i * N + j]) {
+            if(h_input[i * N + j] != h_output[i*M+j]) {
                 printf("Mismatch at [%d,%d]: input=%.1f, output=%.1f\n",
-                       i, j, h_input[i * N + j], h_output[i * N + j]);
+                       i, j, h_input[i * N + j], h_output[i*M+j]);
                 correct = false;
             }
         }

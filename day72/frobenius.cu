@@ -39,20 +39,19 @@ __global__ void normalizeElements(const float* X, float* Y, size_t size, float f
 
 extern "C" void solution(const float* X, float* Y, size_t size) {
     const int threadsPerBlock = 256;
-    const int maxBlocks = 1024;
     const int numBlocks = ((size + threadsPerBlock - 1) / threadsPerBlock);
     
-    float* d_partialSums;
-    cudaMalloc(&d_partialSums, numBlocks * sizeof(float));
+    float* partialSums_d;
+    cudaMalloc(&partialSums_d, numBlocks * sizeof(float));
     
-    computeSumOfSquares<<<numBlocks, threadsPerBlock, threadsPerBlock * sizeof(float)>>>(X, d_partialSums, size);
+    computeSumOfSquares<<<numBlocks, threadsPerBlock, threadsPerBlock * sizeof(float)>>>(X, partialSums_d, size);
     
-    float* h_partialSums = new float[numBlocks];
-    cudaMemcpy(h_partialSums, d_partialSums, numBlocks * sizeof(float), cudaMemcpyDeviceToHost);
+    float* partialSums_h = new float[numBlocks];
+    cudaMemcpy(partialSums_h, partialSums_d, numBlocks * sizeof(float), cudaMemcpyDeviceToHost);
     
     float sumOfSquares = 0.0f;
     for (int i = 0; i < numBlocks; i++) {
-        sumOfSquares += h_partialSums[i];
+        sumOfSquares += partialSums_h[i];
     }
     float frobeniusNorm = sqrtf(sumOfSquares);
     

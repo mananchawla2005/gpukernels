@@ -30,11 +30,11 @@ __global__ void tiled_transpose_kernel(
     Tensor tiled_tensor_DT = tiled_divide(tensor_DT, block_shape); // ([b,b], m/b, n/b)
     
     // Get the tile for this block
-    Tensor tile_S = tiled_tensor_S(make_coord(_, _), blockIdx.y, blockIdx.x);
+    Tensor tile_S = tiled_tensor_S(make_coord(_, _), blockIdx.x, blockIdx.y);
     Tensor tile_DT = tiled_tensor_DT(make_coord(_, _), blockIdx.x, blockIdx.y);
     
     // Defining thread layout for coalesced memory access
-    auto thr_layout = make_layout(make_shape(Int<8>{}, Int<BLOCK_SIZE/8>{}), GenRowMajor{});
+    auto thr_layout = make_layout(make_shape(Int<8>{}, Int<32>{}), GenRowMajor{});
     
     // Getting the portion of the tile assigned to this thread
     Tensor thr_tile_S = local_partition(tile_S, thr_layout, threadIdx.x);
@@ -62,7 +62,7 @@ int main() {
     auto tensor_D = make_tensor(make_gmem_ptr(D_d), gmemLayoutD);
     auto tensor_DT = make_tensor(make_gmem_ptr(D_d), gmemLayoutDT);
 
-    constexpr int BLOCK_SIZE = 32;
+    constexpr int BLOCK_SIZE = 256;
    constexpr int THREADS = BLOCK_SIZE;
    dim3 blockDim(THREADS, 1);
 
@@ -83,7 +83,7 @@ int main() {
     printf("\nTransposed Output Matrix (first 4x4):\n");
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
-            printf("%7.1f ", h_output[i * M + j]);  
+            printf("%7.1f ", h_output[i*M+j]);  
         }
         printf("\n");
     }
@@ -93,7 +93,7 @@ int main() {
         for(int j = 0; j < 4; j++) {
             if(h_input[i * N + j] != h_output[j * M + i]) {  
                 printf("Mismatch at [%d,%d]: input=%.1f, output=%.1f\n",
-                       i, j, h_input[i * N + j], h_output[j * M + i]);
+                       i, j, h_input[i * N + j], h_output[j*M+j]);
                 correct = false;
             }
         }

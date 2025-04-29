@@ -81,8 +81,10 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 68](./day68/) - Transpose kernel using Cutlass Cute framework
 - [Day 69](./day69/) - Huberloss float8 cuda
 - [Day 70](./day70/) - Optimised Transpose kernel using Cutlass Cute framework
-- [Day 71](./day71/) - [Not working] Shared Memory Transpose kernel using Cutlass Cute framework
+- [Day 71](./day71/) - Shared Memory Transpose kernel using Cutlass Cute framework
 - [Day 72](./day72/) - Frobenius Norm in cuda
+- [Day 73](./day73/) - MAX POOL in cuda
+- [Day 74](./day74/) - AVG POOL in cuda
 
 ## FUTURE IDEAS
 
