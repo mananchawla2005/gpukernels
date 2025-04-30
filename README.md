@@ -85,6 +85,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 72](./day72/) - Frobenius Norm in cuda
 - [Day 73](./day73/) - MAX POOL in cuda
 - [Day 74](./day74/) - AVG POOL in cuda
+- [Day 75](./day75/) - Softplus in cuda using inline function
 
 ## FUTURE IDEAS
 
