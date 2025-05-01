@@ -86,6 +86,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 73](./day73/) - MAX POOL in cuda
 - [Day 74](./day74/) - AVG POOL in cuda
 - [Day 75](./day75/) - Softplus in cuda using inline function
+- [Day 76](./day76/) - Softplus Backward in cuda using inline function
 
 ## FUTURE IDEAS
 
