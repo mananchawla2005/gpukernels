@@ -90,6 +90,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 77](./day77/) - Hard Sigmoid in cuda
 - [Day 78](./day78/) - Hard Sigmoid Backward in cuda
 - [Day 79](./day79/) - Maxpool Backward in cuda
+- [Day 80](./day80/) - Warp-Level intrinsics in CUDA
 
 ## FUTURE IDEAS
 
