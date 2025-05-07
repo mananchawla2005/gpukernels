@@ -92,6 +92,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 79](./day79/) - Maxpool Backward in cuda
 - [Day 80](./day80/) - Warp-Level intrinsics in CUDA
 - [Day 81](./day81/) - Row Sum backward in CUDA
+- [Day 82](./day82/) - Cosine Similarity using warp reduction in CUDA
 
 ## FUTURE IDEAS
 
