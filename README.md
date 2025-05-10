@@ -95,6 +95,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 82](./day82/) - Cosine Similarity using warp reduction in CUDA
 - [Day 83](./day83/) - Jensen Shannon Distance in CUDA
 - [Day 84](./day84/) - Batched Embedding Lookup in CUDA
+- [Day 85](./day85/) - Lower Triangular Matrix in CUDA
 
 ## FUTURE IDEAS
 
