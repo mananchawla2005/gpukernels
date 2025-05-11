@@ -1,0 +1,9 @@
+Matrix sizes: A is 512×512, B is 512×512, C is 512×512
+All elements in A are 1.0
+All elements in B are 2.0
+All elements in C are initialized to 0.5
+The GEMM operation being performed is: C = 1.0×A×B + 0.5×C
+For each element of the result:
+
+The dot product of any row of A with any column of B will be: 512 × (1.0 × 2.0) = 1024
+Then we add β×C: 1024 + 0.5×0.5 = 1024 + 0.25 = 1024.25
