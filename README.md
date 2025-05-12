@@ -97,6 +97,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 84](./day84/) - Batched Embedding Lookup in CUDA
 - [Day 85](./day85/) - Lower Triangular Matrix in CUDA
 - [Day 86](./day86/) - Gemm Kernel using Cutlass in CUDA
+- [Day 87](./day87/) - Gemm Kernel using Shared Memory and Tiled Cutlass in CUDA
 
 ## FUTURE IDEAS
 
