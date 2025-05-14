@@ -99,6 +99,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 86](./day86/) - Gemm Kernel using Cutlass in CUDA
 - [Day 87](./day87/) - Gemm Kernel using Shared Memory and Tiled Cutlass in CUDA
 - [Day 88](./day88/) - TENSOR PARALLELISM IN CUDA
+- [Day 89](./day89/) - Relu Fp16x8 IN CUDA
 
 ## FUTURE IDEAS
 
