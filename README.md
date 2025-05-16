@@ -101,6 +101,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 88](./day88/) - TENSOR PARALLELISM IN CUDA
 - [Day 89](./day89/) - Relu Fp16x8 IN CUDA
 - [Day 90](./day90/) - HardShrink Fp16x8 IN CUDA
+- [Day 91](./day91/) - AdamOptimizer implementation in Pytorch and CUDA
 
 ## FUTURE IDEAS
 
@@ -114,4 +115,4 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - Quantization-Aware Training (QAT) - Training with simulated quantization
 - Weight Update with Adam Optimizer - Implement the optimizer directly in CUDA
 - FP8 or FP16 Training Loop - Explore lower precision training
-- Tensor Parallelism - Split computation across multiple GPUs
+- <del>Tensor Parallelism - Split computation across multiple GPUs</del>
