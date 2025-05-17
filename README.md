@@ -102,6 +102,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 89](./day89/) - Relu Fp16x8 IN CUDA
 - [Day 90](./day90/) - HardShrink Fp16x8 IN CUDA
 - [Day 91](./day91/) - AdamOptimizer implementation in Pytorch and CUDA
+- [Day 92](./day92/) - Binary Neural Network IN CUDA
 
 ## FUTURE IDEAS
 
