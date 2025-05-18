@@ -103,6 +103,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 90](./day90/) - HardShrink Fp16x8 IN CUDA
 - [Day 91](./day91/) - AdamOptimizer implementation in Pytorch and CUDA
 - [Day 92](./day92/) - Binary Neural Network IN CUDA
+- [Day 93](./day93/) - Trying cp_async prefetch ptx instruction in cuda
 
 ## FUTURE IDEAS
 
