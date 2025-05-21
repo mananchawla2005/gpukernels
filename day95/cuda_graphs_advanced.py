@@ -1,63 +1,68 @@
+import argparse
 import torch
 import torchvision.models as models
 import time
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", choices=["resnet18","resnet50","mobilenet"], default="resnet18")
+    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--iters", type=int, default=100)
+    args = parser.parse_args()
+
     if not torch.cuda.is_available():
-        print("CUDA not available")
-        return
+        print("CUDA not available"); return
 
     device = torch.device("cuda")
     torch.manual_seed(0)
     torch.backends.cudnn.benchmark = True
-    
-    # Model setup with larger batch
-    model = models.resnet50(pretrained=True).to(device).eval()
-    batch_size = 256  # Larger batch for better GPU utilization
-    static_input = torch.rand((batch_size, 3, 224, 224), 
-                            device=device, 
-      )  # Pinned memory
-    
-    # Enable graph memory pooling
-    torch.backends.cuda.enable_flash_sdp(True)
-    torch.backends.cuda.enable_mem_efficient_sdp(True)
 
-    # Warmup with separate stream
-    stream = torch.cuda.Stream()
-    with torch.cuda.stream(stream):
-        for _ in range(5):
-            with torch.no_grad():
-                model(static_input)
+    # pick model
+    if args.model == "resnet18":
+        model = models.resnet18(pretrained=True)
+    elif args.model == "mobilenet":
+        model = models.mobilenet_v2(pretrained=True)
+    else:
+        model = models.resnet50(pretrained=True)
+    model = model.to(device).eval()
+
+    batch_size = args.batch_size
+    num_iters = args.iters
+    print(f"Model={args.model}, batch={batch_size}, iters={num_iters}")
+
+    static_input = torch.rand((batch_size,3,224,224), device=device)
+
+    # warmup
+    for _ in range(10):
+        with torch.no_grad():
+            model(static_input)
+
+    # baseline
     torch.cuda.synchronize()
-
-    # Baseline timing
-    start = time.perf_counter()
-    for _ in range(100):
+    start = time.time()
+    for _ in range(num_iters):
         with torch.no_grad():
             model(static_input)
     torch.cuda.synchronize()
-    baseline_time = (time.perf_counter() - start) * 1000 / 100
+    baseline_time = (time.time() - start)*1000/num_iters
 
-    # Graph capture with memory optimization
+    # graph
     torch.cuda.empty_cache()
     g = torch.cuda.CUDAGraph()
-    s = torch.cuda.Stream()
-    
-    with torch.cuda.stream(s):
-        with torch.cuda.graph(g, pool=torch.cuda.graph_pool_handle()):
-            with torch.no_grad():
-                static_output = model(static_input)
-    
-    # Graph timing
-    start = time.perf_counter()
-    for _ in range(100):
+    with torch.cuda.graph(g):
+        with torch.no_grad():
+            _ = model(static_input)
+
+    torch.cuda.synchronize()
+    start = time.time()
+    for _ in range(num_iters):
         g.replay()
     torch.cuda.synchronize()
-    graph_time = (time.perf_counter() - start) * 1000 / 100
-    
+    graph_time = (time.time() - start)*1000/num_iters
+
     print(f"Baseline: {baseline_time:.3f}ms")
-    print(f"Graph: {graph_time:.3f}ms")
-    print(f"Speedup: {baseline_time/graph_time:.2f}x")
+    print(f"Graph:    {graph_time:.3f}ms")
+    print(f"Speedup:  {baseline_time/graph_time:.2f}x")
 
 if __name__ == "__main__":
     main()

@@ -106,6 +106,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 93](./day93/) - Trying cp_async prefetch ptx instruction in cuda
 - [Day 94](./day94/) - Understood use of cuda graphs and got speedup in pytorch
 - [Day 95](./day95/) - Optimizing resnet50 using cuda graphs
+- [Day 96](./day96/) - KV CACHE IN CUDA
 
 ## FUTURE IDEAS
 
