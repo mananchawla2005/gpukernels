@@ -73,14 +73,14 @@ int main() {
 
     size_t in_sz  = batch_seq * hidden_dim;
     size_t gate_sz= hidden_dim * intermediate_dim;
-    size_t down_sz= intermediate_dim * hidden_dim;  // Fixed: correct size for down weight
+    size_t down_sz= intermediate_dim * hidden_dim;  
     size_t out_sz = in_sz;
 
     // host buffers
     half *in_h  = new half[in_sz];
     half *gw_h  = new half[gate_sz];
     half *uw_h  = new half[gate_sz];
-    half *dw_h  = new half[down_sz];  // Fixed: use correct size
+    half *dw_h  = new half[down_sz];
     half *out_h = new half[out_sz];
 
     // init with smaller values to prevent overflow
@@ -94,12 +94,12 @@ int main() {
     // device buffers
     half *in_d, *gw_d, *uw_d, *dw_d, *out_d;
     float* of_d;
-    cudaMalloc(&in_d,  in_sz * sizeof(half));   // removed checkCuda
-    cudaMalloc(&gw_d,  gate_sz * sizeof(half)); // removed checkCuda
-    cudaMalloc(&uw_d,  gate_sz * sizeof(half)); // removed checkCuda
-    cudaMalloc(&dw_d,  down_sz * sizeof(half)); // removed checkCuda
-    cudaMalloc(&out_d, out_sz * sizeof(half));  // removed checkCuda
-    cudaMalloc(&of_d,  out_sz * sizeof(float)); // removed checkCuda
+    cudaMalloc(&in_d,  in_sz * sizeof(half));  
+    cudaMalloc(&gw_d,  gate_sz * sizeof(half)); 
+    cudaMalloc(&uw_d,  gate_sz * sizeof(half)); 
+    cudaMalloc(&dw_d,  down_sz * sizeof(half)); 
+    cudaMalloc(&out_d, out_sz * sizeof(half));  
+    cudaMalloc(&of_d,  out_sz * sizeof(float)); 
 
     cudaMemcpy(in_d, in_h, in_sz * sizeof(half), cudaMemcpyHostToDevice);      // removed checkCuda
     cudaMemcpy(gw_d, gw_h, gate_sz * sizeof(half), cudaMemcpyHostToDevice);    // removed checkCuda
