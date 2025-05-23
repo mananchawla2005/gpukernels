@@ -120,6 +120,6 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - Grouped Query Attention (GQA) - Used in models like Llama 3
 - PagedAttention - Memory-efficient attention algorithm from vLLM
 - Quantization-Aware Training (QAT) - Training with simulated quantization
-- Weight Update with Adam Optimizer - Implement the optimizer directly in CUDA
+- <del>Weight Update with Adam Optimizer - Implement the optimizer directly in CUDA </del>
 - FP8 or FP16 Training Loop - Explore lower precision training
 - <del>Tensor Parallelism - Split computation across multiple GPUs</del>
