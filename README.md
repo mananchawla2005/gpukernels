@@ -109,6 +109,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 96](./day96/) - KV CACHE IN CUDA
 - [Day 97](./day97/) - Trying Fused Swish MLP IN CUDA
 - [Day 98](./day98/) - Trying Lora Kernel IN CUDA
+- [Day 99](./day99/) - Trying GQA Kernel IN CUDA
 
 ## FUTURE IDEAS
 
