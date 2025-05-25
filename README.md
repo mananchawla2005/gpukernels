@@ -110,6 +110,7 @@ A collection of GPU kernels implemented one day at a time, progressing from basi
 - [Day 97](./day97/) - Trying Fused Swish MLP IN CUDA
 - [Day 98](./day98/) - Trying Lora Kernel IN CUDA
 - [Day 99](./day99/) - Trying GQA Kernel IN CUDA
+- [Day 100](./day100/) - SPLITK GEMM Kernel IN CUDA
 
 ## FUTURE IDEAS
 
